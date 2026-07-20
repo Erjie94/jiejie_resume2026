@@ -68,6 +68,7 @@ jiejie_web/
 | 文件 | 說明 |
 |------|------|
 | [docs/how-to-run.md](./docs/how-to-run.md) | **操作步驟**（安裝、啟動、建置、FAQ） |
+| [docs/github-pages.md](./docs/github-pages.md) | **GitHub Pages 上線**（讓網站在 Git 上運作） |
 | [docs/README.md](./docs/README.md) | 文件目錄總表 |
 | [docs/getting-started.md](./docs/getting-started.md) | 上手導覽與下一步 |
 | [docs/content-guide.md](./docs/content-guide.md) | 履歷內容填寫 |
