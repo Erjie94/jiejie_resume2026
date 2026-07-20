@@ -1,0 +1,26 @@
+{
+  "name": "jiejie-web",
+  "version": "0.1.0",
+  "private": true,
+  "description": "動態純前端履歷（HTML / CSS / JS + GSAP / Anime / Three / Lottie / Typed / Mo）",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@mojs/core": "^1.7.1",
+    "animejs": "^3.2.2",
+    "gsap": "^3.12.7",
+    "lottie-web": "^5.12.2",
+    "three": "^0.172.0",
+    "typed.js": "^2.1.0"
+  },
+  "devDependencies": {
+    "vite": "^6.0.7"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

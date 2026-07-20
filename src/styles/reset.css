@@ -1,0 +1,78 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+* {
+  margin: 0;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+  /* 俐方體偏小，整體放大一級 */
+  font-size: 125%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  /* 選單開關仍需可見狀態切換，保留極短過渡以外的版面能力 */
+  .mobile-header,
+  .mobile-menu {
+    transition: none !important;
+  }
+}
+
+html,
+body {
+  font-family: 'Cubic11', 'Cubic 11', monospace;
+}
+
+body {
+  min-height: 100vh;
+  line-height: 1.5;
+  /* 點陣字請關閉平滑，否則看起來像一般黑體 */
+  -webkit-font-smoothing: none;
+  -moz-osx-font-smoothing: unset;
+  font-smooth: never;
+}
+
+img,
+picture,
+video,
+canvas,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+input,
+button,
+textarea,
+select {
+  font: inherit;
+}
+
+a {
+  color: inherit;
+  text-decoration-thickness: 0.08em;
+  text-underline-offset: 0.18em;
+}
+
+ul,
+ol {
+  list-style: none;
+  padding: 0;
+}

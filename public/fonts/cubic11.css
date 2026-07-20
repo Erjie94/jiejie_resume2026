@@ -1,0 +1,23 @@
+/* 俐方體11號／Cubic 11 — 相對路徑，配合 Vite public/ 與靜態伺服器 */
+@font-face {
+  font-family: 'Cubic11';
+  src:
+    url('./Cubic_11_1.100_R.woff2') format('woff2'),
+    url('./Cubic_11_1.100_R.woff') format('woff'),
+    url('./Cubic_11_1.100_R.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* 同步登記常見內部名稱，避免部分瀏覽器認不出字型 */
+@font-face {
+  font-family: 'Cubic 11';
+  src:
+    url('./Cubic_11_1.100_R.woff2') format('woff2'),
+    url('./Cubic_11_1.100_R.woff') format('woff'),
+    url('./Cubic_11_1.100_R.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}

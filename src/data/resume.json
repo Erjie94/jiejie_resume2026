@@ -1,0 +1,72 @@
+{
+  "meta": {
+    "siteTitle": "Jiejie — Frontend Resume",
+    "lang": "zh-Hant"
+  },
+  "profile": {
+    "name": "王邇傑 Jeff",
+    "nameEn": "Jiejie",
+    "avatar": "/assets/images/me.png",
+    "tagline": "用動態體驗說故事的前端工程師",
+    "roles": [
+      "Frontend Engineer",
+      "Creative Coder",
+      "UI Animator"
+    ],
+    "location": "Taiwan",
+    "email": "hello@example.com",
+    "links": {
+      "github": "https://github.com/",
+      "linkedin": "",
+      "portfolio": ""
+    }
+  },
+  "about": {
+    "paragraphs": [
+      "這裡放你的簡介。專注前端視覺與互動，擅長把靜態履歷做成有節奏的體驗。",
+      "請編輯 src/data/resume.json，替換成真實內容。"
+    ]
+  },
+  "skills": [
+    { "name": "HTML / CSS", "level": 90, "group": "core" },
+    { "name": "JavaScript", "level": 88, "group": "core" },
+    { "name": "GSAP", "level": 80, "group": "motion" },
+    { "name": "Three.js", "level": 70, "group": "motion" },
+    { "name": "Anime.js / Mo.js", "level": 75, "group": "motion" }
+  ],
+  "experience": [
+    {
+      "company": "Example Studio",
+      "role": "Frontend Engineer",
+      "period": "2023 — Present",
+      "summary": "負責行銷站與互動體驗實作",
+      "highlights": [
+        "以 GSAP ScrollTrigger 完成捲動敘事落地頁",
+        "優化 Lottie／3D 載入，行動裝置可降級"
+      ]
+    },
+    {
+      "company": "Previous Co.",
+      "role": "Web Developer",
+      "period": "2021 — 2023",
+      "summary": "維護企業官網與元件庫",
+      "highlights": [
+        "建立可重用 UI 元件與文件",
+        "改善 Core Web Vitals"
+      ]
+    }
+  ],
+  "projects": [
+    {
+      "title": "Motion Resume",
+      "description": "本專案：純前端動態履歷骨架",
+      "tags": ["Vite", "GSAP", "Three.js"],
+      "url": "#",
+      "image": ""
+    }
+  ],
+  "contact": {
+    "heading": "一起做點有趣的事",
+    "message": "歡迎討論合作、前端視覺或互動專案。"
+  }
+}

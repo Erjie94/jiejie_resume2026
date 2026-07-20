@@ -1,0 +1,19 @@
+# Dependencies
+node_modules/
+.tools/
+
+# Build
+dist/
+
+# Local / editor
+.DS_Store
+Thumbs.db
+*.log
+.vscode/*
+!.vscode/extensions.json
+.idea/
+
+# Env (若日後新增)
+.env
+.env.*
+!.env.example

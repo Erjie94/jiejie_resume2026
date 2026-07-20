@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="zh-Hant" class="is-panels">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="動態前端履歷 — Jiejie Resume" />
+    <title>Jiejie Resume</title>
+    <link rel="stylesheet" href="/fonts/cubic11.css" />
+    <link rel="stylesheet" href="/src/styles/reset.css" />
+    <link rel="stylesheet" href="/src/styles/variables.css" />
+    <link rel="stylesheet" href="/src/styles/main.css" />
+  </head>
+  <body class="is-panels">
+    <div id="webgl-root" aria-hidden="true"></div>
+
+    <!-- Desktop: 左側固定選單（照片 40% + 五個文字選項） -->
+    <aside class="side-nav" aria-label="桌面導覽">
+      <a class="side-nav__photo" href="#hero" data-nav-link>
+        <span class="side-nav__photo-wrap">
+          <img
+            data-field="avatar"
+            src="/assets/images/me.png"
+            alt="個人照片"
+            width="160"
+            height="160"
+          />
+        </span>
+        <span class="side-nav__name" data-field="nav-name">Your Name</span>
+      </a>
+      <a class="side-nav__item" href="#about" data-nav-link>關於</a>
+      <a class="side-nav__item" href="#skills" data-nav-link>技能</a>
+      <a class="side-nav__item" href="#experience" data-nav-link>經歷</a>
+      <a class="side-nav__item" href="#projects" data-nav-link>作品</a>
+      <a class="side-nav__item" href="#contact" data-nav-link>聯絡</a>
+    </aside>
+
+    <!-- Mobile: 頂部功能列 + 手風琴選單（純 CSS/JS，不需 Bootstrap） -->
+    <header class="mobile-header" data-mobile-header>
+      <div class="mobile-header__bar">
+        <a class="mobile-header__brand" href="#hero" data-nav-link data-brand>Jiejie</a>
+        <button
+          class="mobile-header__toggle"
+          type="button"
+          aria-label="開啟選單"
+          aria-expanded="false"
+          aria-controls="mobile-menu"
+          data-menu-toggle
+        >
+          <span class="hamburger" aria-hidden="true">
+            <span></span>
+            <span></span>
+            <span></span>
+          </span>
+        </button>
+      </div>
+      <div class="mobile-menu" data-mobile-menu>
+        <nav id="mobile-menu" class="mobile-menu__panel" aria-label="手機導覽" aria-hidden="true">
+          <a class="mobile-menu__item" href="#about" data-nav-link>關於</a>
+          <a class="mobile-menu__item" href="#skills" data-nav-link>技能</a>
+          <a class="mobile-menu__item" href="#experience" data-nav-link>經歷</a>
+          <a class="mobile-menu__item" href="#projects" data-nav-link>作品</a>
+          <a class="mobile-menu__item" href="#contact" data-nav-link>聯絡</a>
+        </nav>
+      </div>
+    </header>
+
+    <div class="page">
+      <main class="panels-track" data-panels-track>
+        <section id="hero" class="panel section section--hero" data-section="hero">
+          <div class="hero__content">
+            <p class="hero__brand" data-brand-hero>Jiejie</p>
+            <h1 class="hero__name" data-field="name">Your Name</h1>
+            <p class="hero__tagline" data-field="tagline">一句話說明你的定位</p>
+            <p class="hero__role">
+              <span id="typed-role" aria-live="polite"></span>
+            </p>
+            <div class="hero__actions">
+
+            </div>
+          </div>
+        </section>
+
+        <section id="about" class="panel section" data-section="about">
+          <h2 class="section__title">關於我</h2>
+          <div class="about__body" data-field="about" data-animate="fade-up"></div>
+        </section>
+
+        <section id="skills" class="panel section" data-section="skills">
+          <h2 class="section__title">技能</h2>
+          <ul class="skill-list" data-field="skills"></ul>
+          <div id="lottie-skill" class="lottie-slot" aria-hidden="true"></div>
+        </section>
+
+        <section id="experience" class="panel section" data-section="experience">
+          <h2 class="section__title">經歷</h2>
+          <ol class="timeline" data-field="experience"></ol>
+        </section>
+
+        <section id="projects" class="panel section" data-section="projects">
+          <h2 class="section__title">作品</h2>
+          <ul class="project-list" data-field="projects"></ul>
+        </section>
+
+        <section id="contact" class="panel section" data-section="contact">
+          <div class="contact-body">
+            <h2 class="section__title" data-field="contact-heading">聯絡</h2>
+            <p data-field="contact-message"></p>
+            <a class="btn btn--primary" data-field="email" href="mailto:">email</a>
+          </div>
+          <footer class="site-footer">
+            <p data-field="footer"></p>
+          </footer>
+        </section>
+      </main>
+    </div>
+
+    <script type="module" src="/src/scripts/main.js"></script>
+  </body>
+</html>

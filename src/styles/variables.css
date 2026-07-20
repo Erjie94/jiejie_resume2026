@@ -1,0 +1,52 @@
+:root {
+  /* Brand palette (canonical) */
+  --brand-sky: #b8e1ff;
+  --brand-sun: #f2dd6e;
+  --brand-lime: #cff27e;
+  --brand-coral: #ff785a;
+
+  /* Surfaces — sky-led light atmosphere */
+  --color-bg-0: #f7fbff;
+  --color-bg-1: var(--brand-sky);
+  --color-bg-2: #e3f3ff;
+
+  /* Type */
+  --color-ink: #1c2a38;
+  --color-muted: #5a6d7d;
+
+  /* Semantic accents mapped from brand */
+  --color-accent: var(--brand-coral);
+  --color-accent-soft: var(--brand-lime);
+  --color-accent-warm: var(--brand-sun);
+  --color-accent-cool: var(--brand-sky);
+
+  --color-line: rgba(28, 42, 56, 0.12);
+  --color-on-accent: #1c2a38;
+
+  /* Side nav text option pair（預設與 hover 互換） */
+  --nav-fg: var(--brand-lime);
+  --nav-bg: var(--brand-coral);
+
+  /* 字型定義在 /fonts/cubic11.css */
+  --font-display: 'Cubic11', 'Cubic 11', monospace;
+  --font-body: 'Cubic11', 'Cubic 11', monospace;
+
+  --space-1: 0.5rem;
+  --space-2: 1rem;
+  --space-3: 1.5rem;
+  --space-4: 2.5rem;
+  --space-5: 4rem;
+  --space-6: 7rem;
+
+  --content-max: 68rem;
+  --radius: 0.35rem;
+  --photo-radius: 0.65rem;
+
+  --side-nav-w: 15%;
+  --side-nav-photo-h: 40%;
+  --page-gap: 1rem;
+  --header-h: 3.5rem;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --dur-fast: 180ms;
+  --dur-med: 420ms;
+}
