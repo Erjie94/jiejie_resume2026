@@ -4,14 +4,15 @@
     "lang": "zh-Hant"
   },
   "profile": {
-    "name": "王邇傑 Jeff",
-    "nameEn": "Jiejie",
+    "name": "Jeff",
+    "nameEn": "王邇傑",
     "avatar": "assets/images/me.png",
-    "tagline": "用動態體驗說故事的前端工程師",
+    "tagline": "喜歡用生動有趣且易懂方式進行教學的初級大人",
     "roles": [
-      "Frontend Engineer",
-      "Creative Coder",
-      "UI Animator"
+      "想要讓孩子能夠培養並增強邏輯能力嗎？",
+      "Do you want your child to develop and strengthen their logical thinking skills?",
+      "想要累積一技之長？",
+      "Do you want to build up a specialized skill?"
     ],
     "location": "Taiwan",
     "email": "hello@example.com",
@@ -23,16 +24,19 @@
   },
   "about": {
     "paragraphs": [
-      "這裡放你的簡介。專注前端視覺與互動，擅長把靜態履歷做成有節奏的體驗。",
-      "請編輯 src/data/resume.json，替換成真實內容。"
+      "duduruduru",
+      "bababebabe"
     ]
   },
   "skills": [
-    { "name": "HTML / CSS", "level": 90, "group": "core" },
-    { "name": "JavaScript", "level": 88, "group": "core" },
-    { "name": "GSAP", "level": 80, "group": "motion" },
-    { "name": "Three.js", "level": 70, "group": "motion" },
-    { "name": "Anime.js / Mo.js", "level": 75, "group": "motion" }
+    { "name": "HTML / CSS", "level": 1, "group": "core" },
+    { "name": "JavaScript", "level": 1, "group": "core" },
+    { "name": "C#", "level": 1, "group": "motion" },
+    { "name": "SQL", "level": 1, "group": "motion" },
+    { "name": "Python", "level": 1, "group": "motion" },
+    { "name": "GSAP", "level": 1, "group": "motion" },
+    { "name": "Three.js", "level": 1, "group": "motion" },
+    { "name": "DJANGO", "level": 1, "group": "motion" }
   ],
   "experience": [
     {

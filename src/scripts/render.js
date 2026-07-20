@@ -36,7 +36,7 @@ export function renderResume(data) {
         (s) =>
           `<li class="skill-chip" data-skill="${escapeAttr(s.name)}"><strong>${escapeHtml(
             s.name,
-          )}</strong><span>${s.level}%</span></li>`,
+          )}</strong><span>${s.level}</span></li>`,
       )
       .join('');
   }

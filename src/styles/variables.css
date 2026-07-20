@@ -23,6 +23,10 @@
   --color-line: rgba(28, 42, 56, 0.12);
   --color-on-accent: #1c2a38;
 
+  /* 字體漸層尾色 — 降低亮度，避免在天空藍背景上過亮 */
+  --text-grad-end-sky: color-mix(in srgb, var(--brand-sky) 30%, var(--color-ink));
+  --text-grad-end-warm: color-mix(in srgb, var(--brand-sun) 48%, var(--color-ink));
+
   /* Side nav text option pair（預設與 hover 互換） */
   --nav-fg: var(--brand-lime);
   --nav-bg: var(--brand-coral);
