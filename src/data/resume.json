@@ -6,7 +6,7 @@
   "profile": {
     "name": "王邇傑 Jeff",
     "nameEn": "Jiejie",
-    "avatar": "/assets/images/me.png",
+    "avatar": "assets/images/me.png",
     "tagline": "用動態體驗說故事的前端工程師",
     "roles": [
       "Frontend Engineer",

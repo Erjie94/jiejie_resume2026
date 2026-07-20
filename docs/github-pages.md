@@ -86,6 +86,7 @@ Push 後 Actions 會自動重新建置、發布，無需手動上傳。
 
 - 確認 Pages Source 是 **GitHub Actions**
 - 確認 `vite.config.js` 的 `repoBase` 與 repo 名稱一致（`jiejie_resume2026`）
+- 靜態資源路徑請用 `assets/...`（不要寫死 `/assets/...`），程式會透過 `assetUrl()` 加上 GitHub Pages 子路徑
 - 若改 repo 名稱，需同步改 `repoBase` 與 workflow
 
 ### Actions 失敗

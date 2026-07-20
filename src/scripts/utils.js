@@ -17,3 +17,11 @@ export function qs(selector, scope = document) {
 export function qsa(selector, scope = document) {
   return [...scope.querySelectorAll(selector)];
 }
+
+/** public/ 靜態資源路徑（本地與 GitHub Pages 子路徑皆適用） */
+export function assetUrl(path) {
+  if (!path) return '';
+  const base = import.meta.env.BASE_URL || '/';
+  const clean = String(path).replace(/^\//, '');
+  return `${base}${clean}`;
+}

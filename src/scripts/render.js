@@ -1,4 +1,4 @@
-import { qs } from './utils.js';
+import { qs, assetUrl } from './utils.js';
 
 function setText(selector, value) {
   const el = qs(selector);
@@ -14,7 +14,7 @@ export function renderResume(data) {
 
   const avatarEl = qs('[data-field="avatar"]');
   if (avatarEl && profile.avatar) {
-    avatarEl.src = profile.avatar;
+    avatarEl.src = assetUrl(profile.avatar);
     avatarEl.alt = `${profile.name} 的個人照片`;
   }
 

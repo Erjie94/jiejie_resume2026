@@ -1,6 +1,6 @@
 import resume from '../data/resume.json';
 import { renderResume } from './render.js';
-import { prefersReducedMotion, canUseHeavyFx } from './utils.js';
+import { prefersReducedMotion, canUseHeavyFx, assetUrl } from './utils.js';
 import { initNav } from './nav.js';
 import { initTyped } from './animations/typed.js';
 import { initGsap } from './animations/gsap.js';
@@ -49,7 +49,7 @@ async function boot() {
       const { initLottie } = await import('./animations/lottie.js');
       initLottie({
         selector: '#lottie-skill',
-        path: '/assets/lottie/placeholder.json',
+        path: assetUrl('assets/lottie/placeholder.json'),
         reducedMotion: reduced,
       });
     } catch (err) {
