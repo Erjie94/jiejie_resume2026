@@ -25,3 +25,35 @@ export function assetUrl(path) {
   const clean = String(path).replace(/^\//, '');
   return `${base}${clean}`;
 }
+
+/** 是否為空媒體欄位（含字串 "null"） */
+export function isEmptyMedia(value) {
+  if (value == null) return true;
+  if (Array.isArray(value)) return value.length === 0;
+  const s = String(value).trim();
+  return !s || s.toLowerCase() === 'null';
+}
+
+/**
+ * 正規化 resume 的 picture / image 欄位為可用 URL 陣列
+ * 支援：字串、陣列、無副檔名檔名（預設 .jpg）、含副檔名、已含 assets/ 路徑
+ */
+export function resolveMediaList(value, { defaultExt = '.jpg', folder = 'assets/images' } = {}) {
+  if (isEmptyMedia(value)) return [];
+
+  const items = Array.isArray(value) ? value : [value];
+  return items
+    .filter((item) => !isEmptyMedia(item))
+    .map((item) => {
+      let name = String(item).trim().replace(/^\//, '');
+      if (!name.includes('/')) {
+        if (!/\.[a-z0-9]+$/i.test(name)) name = `${name}${defaultExt}`;
+        name = `${folder}/${name}`;
+      }
+      return assetUrl(name);
+    });
+}
+
+export function isVideoUrl(url) {
+  return /\.(mp4|webm|ogg)(\?|$)/i.test(url || '');
+}

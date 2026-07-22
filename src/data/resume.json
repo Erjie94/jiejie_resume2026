@@ -4,7 +4,7 @@
     "lang": "zh-Hant"
   },
   "profile": {
-    "name": "Jeff",
+    "name": "Jeff 王邇傑",
     "nameEn": "王邇傑",
     "avatar": "assets/images/me.png",
     "tagline": "喜歡用生動有趣且易懂方式進行教學的初級大人",
@@ -24,8 +24,16 @@
   },
   "about": {
     "paragraphs": [
-      "duduruduru",
-      "bababebabe"
+      "目前熱衷於啟發學生對資訊科技的興趣",
+      "同時也熱衷用生動有趣且易懂方式進行教學"
+    ],
+    "Certificate": [
+      {"name": "軟體應用乙級"},
+      {"name": "網頁設計丙級"},
+      {"name": "APCS 3/3 級分"},
+      {"name": "TQC 中英打 專業級"},
+      {"name": "TQC WORD 實用級"},
+      {"name": "TQC+ python3"}
     ]
   },
   "skills": [
@@ -40,23 +48,68 @@
   ],
   "experience": [
     {
-      "company": "Example Studio",
-      "role": "Frontend Engineer",
-      "period": "2023 — Present",
-      "summary": "負責行銷站與互動體驗實作",
+      "company": "高雄市立前鎮國中",
+      "role": "小小物流士 課程講師",
+      "period": "2025 - now",
+      "summary": "認識物流的運作流程與相關職業介紹",
+      "picture": "experience1",
       "highlights": [
-        "以 GSAP ScrollTrigger 完成捲動敘事落地頁",
-        "優化 Lottie／3D 載入，行動裝置可降級"
+        "以生動活潑的方式介紹物流的運作流程與相關職業介紹",
+        "同時帶入資訊科技的設備與簡易實作，讓孩子理解科技與物流的結合"
       ]
     },
     {
-      "company": "Previous Co.",
-      "role": "Web Developer",
-      "period": "2021 — 2023",
-      "summary": "維護企業官網與元件庫",
+      "company": "高雄市三信家商",
+      "role": "資訊組組長兼任教師",
+      "period": "2025 - now",
+      "summary": "資訊組組長兼任教師，負責資訊組的運作與資處商經科的課程教學。",
+      "picture": "null",
       "highlights": [
-        "建立可重用 UI 元件與文件",
-        "改善 Core Web Vitals"
+        "主要負責電腦設備修繕與軟體相關",
+        "維護與更新學校官網、處室網頁、考場設備等等的運作",
+        "兼任校內台僑生的資訊課程，訓練軟體應用丙級與資訊操作能力"
+      ]
+    },
+    {
+      "company": "高雄市三信家商",
+      "role": "技藝班導師、文書處理教練",
+      "period": "2025 - now",
+      "summary": "兼任技藝班導師與國中技藝競賽文書處理教練",
+      "picture": ["experience3","experience4"],
+      "highlights": [
+        "主要負責國中技藝班商科群的文書課程，以及活動事項安排"
+      ]
+    },
+    {
+      "company": "BiG GO",
+      "role": "Research and Development intern",
+      "period": "2024 - 2025",
+      "summary": "維護資料與運作",
+      "picture": "MCP.png",
+      "highlights": [
+        "維護資料與運作",
+        "協助進行資料分析與串接。"
+      ]
+    },
+    {
+      "company": "屏東學儒",
+      "role": "行政工讀",
+      "period": "2020 - 2024",
+      "summary": "協助編排講義與安排課程事務，同時支援相關部門工作。",
+      "picture": "null",
+      "highlights": [
+        "主要協助編排課本內容與日常講義、小考，以及列印成冊。",
+        "也會支援櫃台如接待同學、安排線上課程座位等等行政事項。"
+      ]
+    },
+    {
+      "company": "冠味賞鴨肉飯莒光店",
+      "role": "工讀生",
+      "period": "2019 - 2020",
+      "summary": "負責餐點製作與顧客服務。",
+      "picture": "null",
+      "highlights": [
+        "服務顧客與負責部分品項餐點製作。"
       ]
     }
   ],
@@ -67,10 +120,17 @@
       "tags": ["Vite", "GSAP", "Three.js"],
       "url": "#",
       "image": ""
+    },
+    {
+      "title": "MCP圖片生成",
+      "description": "建立MCP server，並生成圖片",
+      "tags": ["MCP", "Python", "DiveAI"],
+      "url": "#",
+      "image": "MCP.mp4"
     }
   ],
   "contact": {
-    "heading": "一起做點有趣的事",
-    "message": "歡迎討論合作、前端視覺或互動專案。"
+    "heading": "一起做點有趣的事！",
+    "message": "歡迎討論各式合作與教育項目。"
   }
 }

@@ -1,4 +1,4 @@
-import { qs, assetUrl } from './utils.js';
+import { qs, assetUrl, resolveMediaList, isVideoUrl } from './utils.js';
 
 function setText(selector, value) {
   const el = qs(selector);
@@ -26,7 +26,29 @@ export function renderResume(data) {
 
   const aboutEl = qs('[data-field="about"]');
   if (aboutEl) {
-    aboutEl.innerHTML = about.paragraphs.map((p) => `<p>${escapeHtml(p)}</p>`).join('');
+    aboutEl.innerHTML = (about.paragraphs || []).map((p) => `<p>${escapeHtml(p)}</p>`).join('');
+  }
+
+  const certs = about?.Certificate || about?.certificate || [];
+  const certEl = qs('[data-field="certificates"]');
+  const certTitle = qs('.about__subtitle');
+  if (certEl) {
+    if (!certs.length) {
+      certEl.innerHTML = '';
+      if (certTitle) certTitle.hidden = true;
+    } else {
+      if (certTitle) certTitle.hidden = false;
+      certEl.innerHTML = certs
+        .map(
+          (c, i) => `
+        <li class="cert-card" style="--cert-i: ${i}">
+          <span class="cert-card__seal" aria-hidden="true"></span>
+          <span class="cert-card__label">Certificate</span>
+          <strong class="cert-card__name">${escapeHtml(c.name)}</strong>
+        </li>`,
+        )
+        .join('');
+    }
   }
 
   const skillsEl = qs('[data-field="skills"]');
@@ -36,45 +58,13 @@ export function renderResume(data) {
         (s) =>
           `<li class="skill-chip" data-skill="${escapeAttr(s.name)}"><strong>${escapeHtml(
             s.name,
-          )}</strong><span>${s.level}</span></li>`,
+          )}</strong>${s.level != null ? `<span>${escapeHtml(String(s.level))}</span>` : ''}</li>`,
       )
       .join('');
   }
 
-  const expEl = qs('[data-field="experience"]');
-  if (expEl) {
-    expEl.innerHTML = experience
-      .map(
-        (item) => `
-        <li class="timeline__item" data-animate="fade-up">
-          <p class="timeline__period">${escapeHtml(item.period)}</p>
-          <h3 class="timeline__role">${escapeHtml(item.role)}</h3>
-          <p class="timeline__company">${escapeHtml(item.company)} — ${escapeHtml(item.summary)}</p>
-          <ul class="timeline__highlights">
-            ${item.highlights.map((h) => `<li>${escapeHtml(h)}</li>`).join('')}
-          </ul>
-        </li>`,
-      )
-      .join('');
-  }
-
-  const projectsEl = qs('[data-field="projects"]');
-  if (projectsEl) {
-    projectsEl.innerHTML = projects
-      .map(
-        (p) => `
-        <li class="project-item" data-animate="fade-up">
-          <h3>${
-            p.url
-              ? `<a href="${escapeAttr(p.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(p.title)}</a>`
-              : escapeHtml(p.title)
-          }</h3>
-          <p>${escapeHtml(p.description)}</p>
-          <div class="project-tags">${p.tags.map((t) => `<span>${escapeHtml(t)}</span>`).join(' · ')}</div>
-        </li>`,
-      )
-      .join('');
-  }
+  renderExperience(experience);
+  renderProjects(projects);
 
   setText('[data-field="contact-heading"]', contact.heading);
   setText('[data-field="contact-message"]', contact.message);
@@ -89,6 +79,198 @@ export function renderResume(data) {
     '[data-field="footer"]',
     `© ${new Date().getFullYear()} ${profile.nameEn || profile.name}`,
   );
+}
+
+function renderExperience(experience = []) {
+  const root = qs('[data-field="experience"]');
+  if (!root) return;
+
+  const nodes = experience
+    .map(
+      (item, index) => `
+      <li class="timeline-h__item">
+        <button
+          type="button"
+          class="timeline-h__node${index === 0 ? ' is-active' : ''}"
+          data-exp-index="${index}"
+          aria-expanded="${index === 0 ? 'true' : 'false'}"
+          aria-controls="exp-detail"
+        >
+          <span class="timeline-h__dot" aria-hidden="true"></span>
+          <span class="timeline-h__period">${escapeHtml(item.period)}</span>
+          <span class="timeline-h__title">${escapeHtml(item.role)}</span>
+          <span class="timeline-h__org">${escapeHtml(item.company)}</span>
+        </button>
+      </li>`,
+    )
+    .join('');
+
+  root.innerHTML = `
+    <ol class="timeline-h__rail" data-exp-rail>${nodes}</ol>
+    <div class="timeline-h__detail" id="exp-detail" data-exp-detail tabindex="-1"></div>
+  `;
+
+  const detailEl = qs('[data-exp-detail]', root);
+  const rail = qs('[data-exp-rail]', root);
+  const buttons = [...root.querySelectorAll('[data-exp-index]')];
+
+  function showDetail(index) {
+    const item = experience[index];
+    if (!item || !detailEl) return;
+
+    buttons.forEach((btn) => {
+      const active = Number(btn.dataset.expIndex) === index;
+      btn.classList.toggle('is-active', active);
+      btn.setAttribute('aria-expanded', active ? 'true' : 'false');
+    });
+
+    const media = resolveMediaList(item.picture);
+    const mediaHtml = media.length
+      ? `<div class="timeline-h__media">${media
+          .map((src) =>
+            isVideoUrl(src)
+              ? `<video class="timeline-h__shot" src="${escapeAttr(src)}" controls playsinline preload="metadata"></video>`
+              : `<img class="timeline-h__shot" src="${escapeAttr(src)}" alt="${escapeAttr(item.role)} 相關照片" loading="lazy" />`,
+          )
+          .join('')}</div>`
+      : '';
+
+    const highlights = (item.highlights || [])
+      .map((h) => `<li>${escapeHtml(h)}</li>`)
+      .join('');
+
+    detailEl.innerHTML = `
+      <div class="timeline-h__detail-layout${media.length ? ' has-media' : ''}">
+        <div class="timeline-h__copy">
+          <p class="timeline-h__detail-period">${escapeHtml(item.period)}</p>
+          <h3 class="timeline-h__detail-role">${escapeHtml(item.role)}</h3>
+          <p class="timeline-h__detail-company">${escapeHtml(item.company)}</p>
+          <p class="timeline-h__detail-summary">${escapeHtml(item.summary || '')}</p>
+          ${highlights ? `<ul class="timeline-h__highlights">${highlights}</ul>` : ''}
+        </div>
+        ${mediaHtml}
+      </div>
+    `;
+
+    detailEl.classList.add('is-open');
+    window.dispatchEvent(new CustomEvent('panels:contentchange'));
+  }
+
+  buttons.forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      if (rail?.dataset.dragging === '1') {
+        e.preventDefault();
+        e.stopPropagation();
+        return;
+      }
+      showDetail(Number(btn.dataset.expIndex));
+    });
+  });
+
+  if (rail) initRailDrag(rail);
+
+  if (experience.length) showDetail(0);
+}
+
+/** 橫軸：隱藏捲軸，支援滑鼠拖曳與觸控滑動（不干擾標題點擊） */
+function initRailDrag(rail) {
+  let pointerId = null;
+  let startX = 0;
+  let startScroll = 0;
+  let dragging = false;
+
+  rail.addEventListener('pointerdown', (e) => {
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    pointerId = e.pointerId;
+    startX = e.clientX;
+    startScroll = rail.scrollLeft;
+    dragging = false;
+    rail.dataset.dragging = '0';
+  });
+
+  rail.addEventListener('pointermove', (e) => {
+    if (pointerId == null || e.pointerId !== pointerId) return;
+    const dx = e.clientX - startX;
+
+    // 超過門檻才進入拖曳，並延後 capture，避免吃掉 button click
+    if (!dragging && Math.abs(dx) > 10) {
+      dragging = true;
+      rail.dataset.dragging = '1';
+      rail.classList.add('is-grabbing');
+      try {
+        rail.setPointerCapture(pointerId);
+      } catch {
+        /* ignore */
+      }
+    }
+
+    if (!dragging) return;
+    rail.scrollLeft = startScroll - dx;
+    e.preventDefault();
+  });
+
+  function endDrag(e) {
+    if (pointerId == null || (e && e.pointerId !== pointerId)) return;
+    const wasDragging = dragging;
+    pointerId = null;
+    dragging = false;
+    rail.classList.remove('is-grabbing');
+
+    if (wasDragging) {
+      rail.dataset.dragging = '1';
+      window.setTimeout(() => {
+        rail.dataset.dragging = '0';
+      }, 80);
+    } else {
+      rail.dataset.dragging = '0';
+    }
+  }
+
+  rail.addEventListener('pointerup', endDrag);
+  rail.addEventListener('pointercancel', endDrag);
+
+  rail.addEventListener(
+    'wheel',
+    (e) => {
+      if (Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return;
+      if (rail.scrollWidth <= rail.clientWidth + 2) return;
+      rail.scrollLeft += e.deltaY;
+      e.preventDefault();
+      e.stopPropagation();
+    },
+    { passive: false },
+  );
+}
+
+function renderProjects(projects = []) {
+  const projectsEl = qs('[data-field="projects"]');
+  if (!projectsEl) return;
+
+  projectsEl.innerHTML = projects
+    .map((p) => {
+      const media = resolveMediaList(p.image, { defaultExt: '' });
+      const mediaHtml = media
+        .map((src) => {
+          if (isVideoUrl(src)) {
+            return `<video class="project-item__media" src="${escapeAttr(src)}" controls playsinline preload="metadata"></video>`;
+          }
+          return `<img class="project-item__media" src="${escapeAttr(src)}" alt="${escapeAttr(p.title)}" loading="lazy" />`;
+        })
+        .join('');
+
+      return `
+        <li class="project-item" data-animate="fade-up">
+          <h3>${
+            p.url
+              ? `<a href="${escapeAttr(p.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(p.title)}</a>`
+              : escapeHtml(p.title)
+          }</h3>
+          <p>${escapeHtml(p.description)}</p>
+          <div class="project-tags">${(p.tags || []).map((t) => `<span>${escapeHtml(t)}</span>`).join(' · ')}</div>
+          ${mediaHtml ? `<div class="project-item__media-wrap">${mediaHtml}</div>` : ''}
+        </li>`;
+    })
+    .join('');
 }
 
 function escapeHtml(str) {
