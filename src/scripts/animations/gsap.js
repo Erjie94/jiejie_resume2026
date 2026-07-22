@@ -54,15 +54,10 @@ export function initGsap({ reducedMotion = false } = {}) {
     const title = panel.querySelector('.section__title');
     if (title) nodes.push(title);
     panel.querySelectorAll('[data-animate="fade-up"]').forEach((el) => nodes.push(el));
-    panel.querySelectorAll('.skill-chip, .cert-card').forEach((el) => nodes.push(el));
+    panel.querySelectorAll('.tag-chip, .cert-card').forEach((el) => nodes.push(el));
     panel.querySelectorAll('.timeline-h__node').forEach((el) => nodes.push(el));
     const contact = panel.querySelector('.contact-body');
     if (contact) nodes.push(contact);
-    // skills 若無 chip（極少見）仍藏住列表容器，避免空白閃爍
-    if (panel.id === 'skills' && !panel.querySelector('.skill-chip')) {
-      const list = panel.querySelector('.skill-list');
-      if (list) nodes.push(list);
-    }
     return nodes;
   }
 
@@ -71,7 +66,7 @@ export function initGsap({ reducedMotion = false } = {}) {
     panels.forEach((panel) => {
       const targets = getEnterTargets(panel);
       if (!targets.length) return;
-      gsap.set(targets, { opacity: 0, y: 28 });
+      gsap.set(targets, { opacity: 0, y: 28, pointerEvents: 'none' });
     });
   }
 
@@ -105,7 +100,7 @@ export function initGsap({ reducedMotion = false } = {}) {
 
     const title = panel.querySelector('.section__title');
     const fadeItems = panel.querySelectorAll('[data-animate="fade-up"]');
-    const chips = panel.querySelectorAll('.skill-chip, .cert-card');
+    const chips = panel.querySelectorAll('.tag-chip, .cert-card');
     const nodes = panel.querySelectorAll('.timeline-h__node');
     const contact = panel.querySelector('.contact-body');
 
@@ -123,22 +118,26 @@ export function initGsap({ reducedMotion = false } = {}) {
     }
 
     if (title) {
-      tl.to(title, { y: 0, opacity: 1, duration: 0.55 });
+      tl.to(title, { y: 0, opacity: 1, pointerEvents: 'auto', duration: 0.55 });
     }
 
     if (fadeItems.length) {
-      tl.to(fadeItems, { y: 0, opacity: 1, stagger: 0.1, duration: 0.55 }, '-=0.2');
+      tl.to(fadeItems, { y: 0, opacity: 1, pointerEvents: 'auto', stagger: 0.1, duration: 0.55 }, '-=0.2');
     }
     if (chips.length) {
-      tl.to(chips, { y: 0, opacity: 1, stagger: 0.06, duration: 0.45 }, fadeItems.length ? '-=0.25' : '-=0.15');
+      tl.to(
+        chips,
+        { y: 0, opacity: 1, pointerEvents: 'auto', stagger: 0.06, duration: 0.45 },
+        fadeItems.length ? '-=0.25' : '-=0.15',
+      );
     }
     if (nodes.length) {
-      tl.to(nodes, { y: 0, opacity: 1, stagger: 0.05, duration: 0.4 }, '-=0.2');
+      tl.to(nodes, { y: 0, opacity: 1, pointerEvents: 'auto', stagger: 0.05, duration: 0.4 }, '-=0.2');
     }
     if (!fadeItems.length && !chips.length && !nodes.length && contact) {
-      tl.to(contact, { y: 0, opacity: 1, duration: 0.5 }, '-=0.2');
+      tl.to(contact, { y: 0, opacity: 1, pointerEvents: 'auto', duration: 0.5 }, '-=0.2');
     } else if (contact && panel.id === 'contact') {
-      tl.to(contact, { y: 0, opacity: 1, duration: 0.5 }, '-=0.2');
+      tl.to(contact, { y: 0, opacity: 1, pointerEvents: 'auto', duration: 0.5 }, '-=0.2');
     }
 
     tl.eventCallback('onComplete', () => syncPanelScrollable());

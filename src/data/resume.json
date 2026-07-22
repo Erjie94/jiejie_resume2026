@@ -36,16 +36,6 @@
       {"name": "TQC+ python3"}
     ]
   },
-  "skills": [
-    { "name": "HTML / CSS", "level": 1, "group": "core" },
-    { "name": "JavaScript", "level": 1, "group": "core" },
-    { "name": "C#", "level": 1, "group": "motion" },
-    { "name": "SQL", "level": 1, "group": "motion" },
-    { "name": "Python", "level": 1, "group": "motion" },
-    { "name": "GSAP", "level": 1, "group": "motion" },
-    { "name": "Three.js", "level": 1, "group": "motion" },
-    { "name": "DJANGO", "level": 1, "group": "motion" }
-  ],
   "experience": [
     {
       "company": "高雄市立前鎮國中",
@@ -118,15 +108,36 @@
       "title": "Motion Resume",
       "description": "本專案：純前端動態履歷骨架",
       "tags": ["Vite", "GSAP", "Three.js"],
-      "url": "#",
+      "url": "",
       "image": ""
     },
     {
       "title": "MCP圖片生成",
       "description": "建立MCP server，並生成圖片",
       "tags": ["MCP", "Python", "DiveAI"],
-      "url": "#",
+      "url": "",
       "image": "MCP.mp4"
+    },
+    {
+      "title": "個人網站製作(技藝班教材)",
+      "description": "藉由設定各種變數內容，製作個人網站",
+      "tags": ["Django", "Python", "HTML", "CSS", "JavaScript", "Bootstrap"],
+      "url": "",
+      "image": ["個人網站1.png", "個人網站2.png"]
+    },
+    {
+      "title": "題庫訓練程式(技藝班教材)",
+      "description": "以提供學科訓練為目的的小作品",
+      "tags": ["HTML", "CSS", "JavaScript"],
+      "url": "",
+      "image": ["題庫1.png", "題庫2.png"]
+    },
+    {
+      "title": "Food Go 食材管理系統",
+      "description": "協助校內餐飲科進行食材管理",
+      "tags": ["HTML", "CSS", "JavaScript", "Bootstrap", "MySQL", "Django","Python","Bootstrap"],
+      "url": "",
+      "image": ["FoodGo1.png", "FoodGo2.png", "FoodGo3.png"]
     }
   ],
   "contact": {

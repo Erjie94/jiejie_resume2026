@@ -1,20 +1,21 @@
 import anime from 'animejs';
 
 /**
- * 技能標籤等微互動
+ * 作品篩選標籤等微互動
  * @see docs/animation-guide.md
  */
 export function initAnime({ reducedMotion = false } = {}) {
   if (reducedMotion) return;
 
-  const chips = document.querySelectorAll('.skill-chip');
+  // 僅做輕量位移回饋，避免 scale 造成相鄰按鈕重疊難點
+  const chips = document.querySelectorAll('.tag-chip');
   chips.forEach((chip) => {
     chip.addEventListener('mouseenter', () => {
       anime.remove(chip);
       anime({
         targets: chip,
-        scale: 1.05,
-        duration: 280,
+        translateY: -2,
+        duration: 220,
         easing: 'easeOutQuad',
       });
     });
@@ -22,8 +23,8 @@ export function initAnime({ reducedMotion = false } = {}) {
       anime.remove(chip);
       anime({
         targets: chip,
-        scale: 1,
-        duration: 220,
+        translateY: 0,
+        duration: 200,
         easing: 'easeOutQuad',
       });
     });

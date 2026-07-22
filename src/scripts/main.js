@@ -1,6 +1,6 @@
 import resume from '../data/resume.json';
 import { renderResume } from './render.js';
-import { prefersReducedMotion, canUseHeavyFx, assetUrl } from './utils.js';
+import { prefersReducedMotion, canUseHeavyFx } from './utils.js';
 import { initNav } from './nav.js';
 import { initTyped } from './animations/typed.js';
 import { initGsap } from './animations/gsap.js';
@@ -45,17 +45,6 @@ async function boot() {
 
   // 重資源動態載入，縮小首屏 JS
   requestAnimationFrame(async () => {
-    try {
-      const { initLottie } = await import('./animations/lottie.js');
-      initLottie({
-        selector: '#lottie-skill',
-        path: assetUrl('assets/lottie/placeholder.json'),
-        reducedMotion: reduced,
-      });
-    } catch (err) {
-      console.warn('[init] lottie 失敗：', err);
-    }
-
     if (!reduced && canUseHeavyFx()) {
       try {
         const { initThreeScene } = await import('./three/scene.js');

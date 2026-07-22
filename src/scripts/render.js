@@ -6,7 +6,7 @@ function setText(selector, value) {
 }
 
 export function renderResume(data) {
-  const { profile, about, skills, experience, projects, contact } = data;
+  const { profile, about, experience, projects, contact } = data;
 
   setText('[data-field="name"]', profile.name);
   setText('[data-field="nav-name"]', profile.name);
@@ -49,18 +49,6 @@ export function renderResume(data) {
         )
         .join('');
     }
-  }
-
-  const skillsEl = qs('[data-field="skills"]');
-  if (skillsEl) {
-    skillsEl.innerHTML = skills
-      .map(
-        (s) =>
-          `<li class="skill-chip" data-skill="${escapeAttr(s.name)}"><strong>${escapeHtml(
-            s.name,
-          )}</strong>${s.level != null ? `<span>${escapeHtml(String(s.level))}</span>` : ''}</li>`,
-      )
-      .join('');
   }
 
   renderExperience(experience);
@@ -193,7 +181,7 @@ function renderExperience(experience = []) {
     stageEl.appendChild(incoming);
 
     const toH = incoming.offsetHeight;
-    const duration = 480;
+    const duration = 800;
     const easing = 'cubic-bezier(0.22, 1, 0.36, 1)';
     // direction > 0：往時間線右側 → 舊內容向左退出，新內容自右推入
     const outX = `${-direction * 100}%`;
@@ -241,13 +229,13 @@ function renderExperience(experience = []) {
     });
   });
 
-  if (rail) initRailDrag(rail);
+  if (rail) initHorizontalScroll(rail);
 
   if (experience.length) showDetail(0, { instant: true });
 }
 
-/** 橫軸：隱藏捲軸，支援滑鼠拖曳與觸控滑動（不干擾標題點擊） */
-function initRailDrag(rail) {
+/** 橫向軌道：隱藏捲軸，支援滑鼠拖曳／滾輪與觸控滑動（不干擾按鈕點擊） */
+function initHorizontalScroll(rail) {
   let pointerId = null;
   let startX = 0;
   let startScroll = 0;
@@ -316,35 +304,122 @@ function initRailDrag(rail) {
   );
 }
 
+function collectProjectTags(projects = []) {
+  const seen = new Set();
+  const tags = [];
+  projects.forEach((p) => {
+    (p.tags || []).forEach((tag) => {
+      const key = String(tag).trim().toLowerCase();
+      if (!key || seen.has(key)) return;
+      seen.add(key);
+      tags.push(String(tag).trim());
+    });
+  });
+  return tags;
+}
+
+function projectHasTag(project, tag) {
+  const needle = String(tag).trim().toLowerCase();
+  return (project.tags || []).some((t) => String(t).trim().toLowerCase() === needle);
+}
+
 function renderProjects(projects = []) {
   const projectsEl = qs('[data-field="projects"]');
+  const filtersEl = qs('[data-field="project-filters"]');
   if (!projectsEl) return;
 
-  projectsEl.innerHTML = projects
-    .map((p) => {
-      const media = resolveMediaList(p.image, { defaultExt: '' });
-      const mediaHtml = media
-        .map((src) => {
-          if (isVideoUrl(src)) {
-            return `<video class="project-item__media" src="${escapeAttr(src)}" controls playsinline preload="metadata"></video>`;
-          }
-          return `<img class="project-item__media" src="${escapeAttr(src)}" alt="${escapeAttr(p.title)}" loading="lazy" />`;
-        })
-        .join('');
+  const allTags = collectProjectTags(projects);
+  /** @type {Set<string>} */
+  const activeTags = new Set();
 
-      return `
-        <li class="project-item" data-animate="fade-up">
-          <h3>${
-            p.url
-              ? `<a href="${escapeAttr(p.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(p.title)}</a>`
-              : escapeHtml(p.title)
-          }</h3>
-          <p>${escapeHtml(p.description)}</p>
-          <div class="project-tags">${(p.tags || []).map((t) => `<span>${escapeHtml(t)}</span>`).join(' · ')}</div>
-          ${mediaHtml ? `<div class="project-item__media-wrap">${mediaHtml}</div>` : ''}
-        </li>`;
-    })
-    .join('');
+  function projectItemHtml(p, index) {
+    const media = resolveMediaList(p.image, { defaultExt: '.png' }).slice(0, 3);
+    const mediaHtml = media
+      .map((src) => {
+        if (isVideoUrl(src)) {
+          return `<video class="project-item__media" src="${escapeAttr(src)}" controls playsinline preload="metadata"></video>`;
+        }
+        return `<img class="project-item__media" src="${escapeAttr(src)}" alt="${escapeAttr(p.title)}" loading="lazy" />`;
+      })
+      .join('');
+
+    const tagAttrs = (p.tags || []).map((t) => String(t).trim().toLowerCase()).join(' ');
+
+    return `
+      <li class="project-item" data-animate="fade-up" data-project-index="${index}" data-project-tags="${escapeAttr(tagAttrs)}">
+        <h3>${
+          p.url
+            ? `<a href="${escapeAttr(p.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(p.title)}</a>`
+            : escapeHtml(p.title)
+        }</h3>
+        <p>${escapeHtml(p.description)}</p>
+        <div class="project-tags">${(p.tags || [])
+          .map((t) => `<span data-tag="${escapeAttr(t)}">${escapeHtml(t)}</span>`)
+          .join(' · ')}</div>
+        ${mediaHtml ? `<div class="project-item__media-wrap">${mediaHtml}</div>` : ''}
+      </li>`;
+  }
+
+  function applyFilter() {
+    const items = [...projectsEl.querySelectorAll('.project-item')];
+    items.forEach((item, index) => {
+      const project = projects[index];
+      const visible =
+        activeTags.size === 0 || [...activeTags].some((tag) => projectHasTag(project, tag));
+      item.hidden = !visible;
+      item.classList.toggle('is-filtered-out', !visible);
+    });
+
+    if (filtersEl) {
+      filtersEl.querySelectorAll('[data-filter-tag]').forEach((btn) => {
+        const tag = btn.getAttribute('data-filter-tag') || '';
+        const isAll = tag === '';
+        const active = isAll ? activeTags.size === 0 : activeTags.has(tag);
+        btn.classList.toggle('is-active', active);
+        btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+      });
+    }
+
+    window.dispatchEvent(new CustomEvent('panels:contentchange'));
+  }
+
+  if (filtersEl) {
+    const chips = [
+      `<li><button type="button" class="tag-chip is-active" data-filter-tag="" aria-pressed="true">全部</button></li>`,
+      ...allTags.map(
+        (tag) =>
+          `<li><button type="button" class="tag-chip" data-filter-tag="${escapeAttr(tag)}" aria-pressed="false">${escapeHtml(tag)}</button></li>`,
+      ),
+    ];
+    filtersEl.innerHTML = chips.join('');
+    initHorizontalScroll(filtersEl);
+
+    filtersEl.addEventListener('click', (e) => {
+      if (filtersEl.dataset.dragging === '1') {
+        e.preventDefault();
+        e.stopPropagation();
+        return;
+      }
+
+      const btn = e.target.closest('[data-filter-tag]');
+      if (!btn || !filtersEl.contains(btn)) return;
+
+      e.preventDefault();
+      const tag = btn.getAttribute('data-filter-tag') || '';
+      if (!tag) {
+        activeTags.clear();
+      } else if (activeTags.has(tag)) {
+        activeTags.delete(tag);
+      } else {
+        activeTags.add(tag);
+      }
+
+      applyFilter();
+    });
+  }
+
+  projectsEl.innerHTML = projects.map((p, i) => projectItemHtml(p, i)).join('');
+  applyFilter();
 }
 
 function escapeHtml(str) {
