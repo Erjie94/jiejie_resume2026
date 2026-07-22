@@ -7,7 +7,7 @@ gsap.registerPlugin(ScrollTrigger);
  * 以每個 data-section 為一頁的 GSAP 滾動翻頁
  * @see docs/animation-guide.md
  */
-export function initGsap({ reducedMotion = false } = {}) {
+export function initGsap({ reducedMotion = false, initialHash = '' } = {}) {
   const track = document.querySelector('[data-panels-track]');
   const panels = gsap.utils.toArray('[data-section]');
 
@@ -78,10 +78,21 @@ export function initGsap({ reducedMotion = false } = {}) {
 
     panels.forEach((panel) => {
       panel.style.height = `${viewportH}px`;
+      panel.style.minHeight = `${viewportH}px`;
+      panel.style.maxHeight = `${viewportH}px`;
     });
     gsap.set(track, { y: -current * viewportH });
+    window.scrollTo(0, 0);
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
     // 等高度套用後再判斷是否需要內層捲動
     requestAnimationFrame(syncPanelScrollable);
+  }
+
+  function resetWindowScroll() {
+    window.scrollTo(0, 0);
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
   }
 
   function setActiveNav(index) {
@@ -152,6 +163,12 @@ export function initGsap({ reducedMotion = false } = {}) {
     current = next;
     resetOverscroll();
     setActiveNav(current);
+    resetWindowScroll();
+    panels.forEach((panel, i) => {
+      if (i !== current) panel.scrollTop = 0;
+    });
+    // 進到該頁時從頂部開始，避免重新整理停在證照等中段
+    panels[current].scrollTop = 0;
 
     const id = panels[current].id;
     if (id) history.replaceState(null, '', `#${id}`);
@@ -160,7 +177,11 @@ export function initGsap({ reducedMotion = false } = {}) {
       gsap.set(track, { y: -current * viewportH });
       busy = false;
       // 下一幀再播，確保隱藏狀態已上屏
-      requestAnimationFrame(() => playEnter(current));
+      requestAnimationFrame(() => {
+        measure();
+        playEnter(current);
+        syncPanelScrollable();
+      });
       return current;
     }
 
@@ -259,10 +280,25 @@ export function initGsap({ reducedMotion = false } = {}) {
   prepareHiddenState();
   document.body.classList.add('is-panels-ready');
   measure();
+  resetWindowScroll();
 
-  const hash = window.location.hash.replace('#', '');
+  const hash = initialHash || window.location.hash.replace('#', '');
   const startIndex = panels.findIndex((p) => p.id === hash);
+  // 重新整理時若停在中段區塊易與原生 hash 捲動衝突；統一由翻頁系統定位並重算高度
   goTo(startIndex >= 0 ? startIndex : 0, { instant: true });
+
+  const remountLayout = () => {
+    measure();
+    gsap.set(track, { y: -current * viewportH });
+    resetWindowScroll();
+    syncPanelScrollable();
+  };
+
+  if (document.fonts?.ready) {
+    document.fonts.ready.then(() => remountLayout()).catch(() => {});
+  }
+  window.addEventListener('load', remountLayout, { once: true });
+  requestAnimationFrame(() => requestAnimationFrame(remountLayout));
 
   document.addEventListener('mousedown', () => {
     pointerSelecting = false;

@@ -5,6 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="動態前端履歷 — Jiejie Resume" />
     <title>Jiejie Resume</title>
+    <script>
+      /* 避免重新整理時瀏覽器依 hash 原生跳轉，破壞翻頁高度 */
+      if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+      if (location.hash) {
+        window.__resumeBootHash = location.hash.replace(/^#/, '');
+        history.replaceState(null, '', location.pathname + location.search);
+      }
+      window.scrollTo(0, 0);
+    </script>
     <link rel="stylesheet" href="/fonts/cubic11.css" />
     <link rel="stylesheet" href="/src/styles/reset.css" />
     <link rel="stylesheet" href="/src/styles/variables.css" />

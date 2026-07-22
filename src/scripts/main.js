@@ -16,6 +16,16 @@ function safe(label, fn) {
 }
 
 async function boot() {
+  const bootHash =
+    window.__resumeBootHash ||
+    (() => {
+      const h = window.location.hash.replace('#', '');
+      if (h) history.replaceState(null, '', `${window.location.pathname}${window.location.search}`);
+      return h;
+    })();
+  window.__resumeBootHash = '';
+  window.scrollTo(0, 0);
+
   document.documentElement.lang = resume.meta?.lang || 'zh-Hant';
   if (resume.meta?.siteTitle) {
     document.title = resume.meta.siteTitle;
@@ -27,7 +37,7 @@ async function boot() {
 
   let gsapApi = { goToSection: () => {} };
   safe('gsap', () => {
-    gsapApi = initGsap({ reducedMotion: reduced }) || gsapApi;
+    gsapApi = initGsap({ reducedMotion: reduced, initialHash: bootHash }) || gsapApi;
   });
 
   initNav({ goToSection: gsapApi.goToSection });
