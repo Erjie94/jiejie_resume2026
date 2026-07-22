@@ -107,23 +107,20 @@ function renderExperience(experience = []) {
 
   root.innerHTML = `
     <ol class="timeline-h__rail" data-exp-rail>${nodes}</ol>
-    <div class="timeline-h__detail" id="exp-detail" data-exp-detail tabindex="-1"></div>
+    <div class="timeline-h__detail" id="exp-detail" data-exp-detail tabindex="-1">
+      <div class="timeline-h__stage" data-exp-stage></div>
+    </div>
   `;
 
   const detailEl = qs('[data-exp-detail]', root);
+  const stageEl = qs('[data-exp-stage]', root);
   const rail = qs('[data-exp-rail]', root);
   const buttons = [...root.querySelectorAll('[data-exp-index]')];
+  let currentIndex = -1;
+  let animating = false;
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  function showDetail(index) {
-    const item = experience[index];
-    if (!item || !detailEl) return;
-
-    buttons.forEach((btn) => {
-      const active = Number(btn.dataset.expIndex) === index;
-      btn.classList.toggle('is-active', active);
-      btn.setAttribute('aria-expanded', active ? 'true' : 'false');
-    });
-
+  function buildDetailMarkup(item) {
     const media = resolveMediaList(item.picture);
     const mediaHtml = media.length
       ? `<div class="timeline-h__media">${media
@@ -139,7 +136,7 @@ function renderExperience(experience = []) {
       .map((h) => `<li>${escapeHtml(h)}</li>`)
       .join('');
 
-    detailEl.innerHTML = `
+    return `
       <div class="timeline-h__detail-layout${media.length ? ' has-media' : ''}">
         <div class="timeline-h__copy">
           <p class="timeline-h__detail-period">${escapeHtml(item.period)}</p>
@@ -151,7 +148,84 @@ function renderExperience(experience = []) {
         ${mediaHtml}
       </div>
     `;
+  }
 
+  function setActiveButton(index) {
+    buttons.forEach((btn) => {
+      const active = Number(btn.dataset.expIndex) === index;
+      btn.classList.toggle('is-active', active);
+      btn.setAttribute('aria-expanded', active ? 'true' : 'false');
+      if (active) {
+        btn.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', inline: 'nearest', block: 'nearest' });
+      }
+    });
+  }
+
+  async function showDetail(index, { instant = false } = {}) {
+    const item = experience[index];
+    if (!item || !detailEl || !stageEl) return;
+    if (index === currentIndex) return;
+    if (animating && !instant) return;
+
+    const direction = instant || currentIndex < 0 ? 0 : Math.sign(index - currentIndex);
+    setActiveButton(index);
+
+    const incoming = document.createElement('div');
+    incoming.className = 'timeline-h__slide';
+    incoming.innerHTML = buildDetailMarkup(item);
+
+    const outgoing = stageEl.querySelector('.timeline-h__slide');
+
+    // 首次載入或減少動態：直接替換
+    if (direction === 0 || !outgoing || reduceMotion || instant) {
+      stageEl.replaceChildren(incoming);
+      currentIndex = index;
+      detailEl.classList.add('is-open');
+      window.dispatchEvent(new CustomEvent('panels:contentchange'));
+      return;
+    }
+
+    animating = true;
+    const fromH = outgoing.offsetHeight;
+    stageEl.style.height = `${fromH}px`;
+    outgoing.classList.add('is-outgoing');
+    incoming.classList.add('is-incoming');
+    stageEl.appendChild(incoming);
+
+    const toH = incoming.offsetHeight;
+    const duration = 480;
+    const easing = 'cubic-bezier(0.22, 1, 0.36, 1)';
+    // direction > 0：往時間線右側 → 舊內容向左退出，新內容自右推入
+    const outX = `${-direction * 100}%`;
+    const inFromX = `${direction * 100}%`;
+
+    try {
+      await Promise.all([
+        outgoing.animate(
+          [{ transform: 'translateX(0)' }, { transform: `translateX(${outX})` }],
+          { duration, easing, fill: 'forwards' },
+        ).finished,
+        incoming.animate(
+          [{ transform: `translateX(${inFromX})` }, { transform: 'translateX(0)' }],
+          { duration, easing, fill: 'forwards' },
+        ).finished,
+        stageEl.animate(
+          [{ height: `${fromH}px` }, { height: `${toH}px` }],
+          { duration, easing, fill: 'forwards' },
+        ).finished,
+      ]);
+    } catch {
+      /* animation cancelled */
+    }
+
+    outgoing.remove();
+    incoming.getAnimations().forEach((a) => a.cancel());
+    stageEl.getAnimations().forEach((a) => a.cancel());
+    incoming.classList.remove('is-incoming');
+    incoming.style.transform = '';
+    stageEl.style.height = '';
+    currentIndex = index;
+    animating = false;
     detailEl.classList.add('is-open');
     window.dispatchEvent(new CustomEvent('panels:contentchange'));
   }
@@ -169,7 +243,7 @@ function renderExperience(experience = []) {
 
   if (rail) initRailDrag(rail);
 
-  if (experience.length) showDetail(0);
+  if (experience.length) showDetail(0, { instant: true });
 }
 
 /** 橫軸：隱藏捲軸，支援滑鼠拖曳與觸控滑動（不干擾標題點擊） */

@@ -824,6 +824,27 @@ body.is-panels .section {
   transform: none;
 }
 
+.timeline-h__stage {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  min-width: 0;
+}
+
+.timeline-h__slide {
+  width: 100%;
+  min-width: 0;
+  will-change: transform;
+}
+
+.timeline-h__slide.is-outgoing,
+.timeline-h__slide.is-incoming {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+}
+
 .timeline-h__detail-layout {
   display: grid;
   grid-template-columns: 1fr;
@@ -995,6 +1016,10 @@ body.is-panels .section {
   .timeline-h__detail,
   .timeline-h__dot {
     transition: none;
+  }
+
+  .timeline-h__slide {
+    will-change: auto;
   }
 
   .cert-card {
