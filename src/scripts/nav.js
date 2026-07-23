@@ -109,6 +109,7 @@ export function initNav({ goToSection } = {}) {
 
       if (typeof goToSection === 'function') {
         e.preventDefault();
+        e.stopPropagation();
         goToSection(id);
       }
 

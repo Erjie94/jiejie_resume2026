@@ -159,24 +159,34 @@ export function initGsap({ reducedMotion = false, initialHash = '' } = {}) {
     if (busy && !instant) return current;
     if (next === current && !instant) return current;
 
+    const prev = current;
+    const prevScroll = panels[prev] ? panels[prev].scrollTop : 0;
     busy = true;
     current = next;
     resetOverscroll();
     setActiveNav(current);
     resetWindowScroll();
-    panels.forEach((panel, i) => {
-      if (i !== current) panel.scrollTop = 0;
-    });
-    // 進到該頁時從頂部開始，避免重新整理停在證照等中段
+    // 進入頁從頂部開始；離開頁的捲動位置先鎖住，等轉場結束再清
     panels[current].scrollTop = 0;
 
     const id = panels[current].id;
-    if (id) history.replaceState(null, '', `#${id}`);
+
+    const freezePrevScroll = () => {
+      if (prev === current || !panels[prev]) return;
+      if (panels[prev].scrollTop !== prevScroll) {
+        panels[prev].scrollTop = prevScroll;
+      }
+    };
+
+    const clearPrevScroll = () => {
+      if (prev !== current && panels[prev]) panels[prev].scrollTop = 0;
+    };
 
     if (instant) {
+      clearPrevScroll();
+      if (id) history.replaceState(null, '', `#${id}`);
       gsap.set(track, { y: -current * viewportH });
       busy = false;
-      // 下一幀再播，確保隱藏狀態已上屏
       requestAnimationFrame(() => {
         measure();
         playEnter(current);
@@ -185,12 +195,17 @@ export function initGsap({ reducedMotion = false, initialHash = '' } = {}) {
       return current;
     }
 
+    // 轉場期間先不改 hash，避免瀏覽器把目標錨點捲進視野、連帶弄亂離開頁捲動
+    freezePrevScroll();
     gsap.to(track, {
       y: -current * viewportH,
       duration: 0.85,
       ease: 'power2.inOut',
       overwrite: true,
+      onUpdate: freezePrevScroll,
       onComplete: () => {
+        clearPrevScroll();
+        if (id) history.replaceState(null, '', `#${id}`);
         busy = false;
         playEnter(current);
         syncPanelScrollable();
