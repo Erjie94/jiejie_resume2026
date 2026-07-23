@@ -2,12 +2,9 @@ export function prefersReducedMotion() {
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 }
 
-/** 行動裝置或省電情境可關閉 Three 等重特效 */
+/** 僅行動裝置關閉 Three 等重特效（對齊站內 ≤900px 斷點） */
 export function canUseHeavyFx() {
-  const narrow = window.matchMedia('(max-width: 768px)').matches;
-  const saveData = navigator.connection?.saveData;
-  const weakDevice = navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4;
-  return !narrow && !saveData && !weakDevice;
+  return !window.matchMedia('(max-width: 900px)').matches;
 }
 
 export function qs(selector, scope = document) {

@@ -1,6 +1,6 @@
 import resume from '../data/resume.json';
 import { renderResume } from './render.js';
-import { prefersReducedMotion, canUseHeavyFx } from './utils.js';
+import { prefersReducedMotion, canUseHeavyFx, assetUrl } from './utils.js';
 import { initNav } from './nav.js';
 import { initTyped } from './animations/typed.js';
 import { initGsap } from './animations/gsap.js';
@@ -53,8 +53,21 @@ async function boot() {
   safe('anime', () => initAnime({ reducedMotion: reduced }));
   safe('mo', () => initMo({ reducedMotion: reduced }));
 
-  // 重資源動態載入，縮小首屏 JS
   requestAnimationFrame(async () => {
+    const desktop = window.matchMedia('(min-width: 901px)').matches;
+    if (desktop) {
+      try {
+        const { initLottie } = await import('./animations/lottie.js');
+        initLottie({
+          selector: '#lottie-mail',
+          path: assetUrl('assets/lottie/mail.json'),
+          reducedMotion: reduced,
+        });
+      } catch (err) {
+        console.warn('[init] lottie 失敗：', err);
+      }
+    }
+
     if (!reduced && canUseHeavyFx()) {
       try {
         const { initThreeScene } = await import('./three/scene.js');

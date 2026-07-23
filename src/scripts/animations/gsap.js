@@ -56,7 +56,7 @@ export function initGsap({ reducedMotion = false, initialHash = '' } = {}) {
     panel.querySelectorAll('[data-animate="fade-up"]').forEach((el) => nodes.push(el));
     panel.querySelectorAll('.tag-chip, .cert-card').forEach((el) => nodes.push(el));
     panel.querySelectorAll('.timeline-h__node').forEach((el) => nodes.push(el));
-    const contact = panel.querySelector('.contact-body');
+    const contact = panel.querySelector('.contact-layout') || panel.querySelector('.contact-body');
     if (contact) nodes.push(contact);
     return nodes;
   }
@@ -113,7 +113,7 @@ export function initGsap({ reducedMotion = false, initialHash = '' } = {}) {
     const fadeItems = panel.querySelectorAll('[data-animate="fade-up"]');
     const chips = panel.querySelectorAll('.tag-chip, .cert-card');
     const nodes = panel.querySelectorAll('.timeline-h__node');
-    const contact = panel.querySelector('.contact-body');
+    const contact = panel.querySelector('.contact-layout') || panel.querySelector('.contact-body');
 
     const tl = gsap.timeline({ defaults: { ease: 'power2.out' } });
 

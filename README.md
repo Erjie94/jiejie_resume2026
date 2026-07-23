@@ -30,6 +30,17 @@ npm.cmd run dev
 | [docs/project-details.md](./docs/project-details.md) | 技術細節、版面與維護備註（內部參考） |
 | [docs/README.md](./docs/README.md) | 其餘文件目錄 |
 
+## 四色
+
+定義於 [`src/styles/variables.css`](./src/styles/variables.css)（`:root` CSS 變數）。
+
+| 色碼 | Token | 用途 |
+|------|-------|------|
+| `#B8E1FF` | `--brand-sky` | 天空藍／氛圍底 |
+| `#F2DD6E` | `--brand-sun` | 暖黃／高光 |
+| `#CFF27E` | `--brand-lime` | 萊姆／次要強調 |
+| `#FF785A` | `--brand-coral` | 珊瑚／主強調與 CTA |
+
 ## 授權
 
 個人履歷專案，內容版權歸作者所有。第三方函式庫依各套件授權。

@@ -15,11 +15,11 @@
       "Do you want to build up a specialized skill?"
     ],
     "location": "Taiwan",
-    "email": "hello@example.com",
+    "email": "erjie8994@gmail.com",
     "links": {
-      "github": "https://github.com/",
-      "linkedin": "",
-      "portfolio": ""
+      "github": "https://github.com/Erjie94",
+      "linkedin": "null",
+      "portfolio": "null"
     }
   },
   "about": {
@@ -141,7 +141,7 @@
     }
   ],
   "contact": {
-    "heading": "一起做點有趣的事！",
-    "message": "歡迎討論各式合作與教育項目。"
+    "heading": "歡迎與我聯絡，做點有趣的事！",
+    "message": "以下提供我的聯絡方式："
   }
 }
