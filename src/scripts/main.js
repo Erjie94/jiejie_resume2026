@@ -1,6 +1,6 @@
 import resume from '../data/resume.json';
 import { renderResume } from './render.js';
-import { prefersReducedMotion, canUseHeavyFx, assetUrl } from './utils.js';
+import { prefersReducedMotion, canUseHeavyFx, assetUrl, prewarmMediaFromResume } from './utils.js';
 import { initNav } from './nav.js';
 import { initTyped } from './animations/typed.js';
 import { initGsap } from './animations/gsap.js';
@@ -31,7 +31,8 @@ async function boot() {
     document.title = resume.meta.siteTitle;
   }
 
-  renderResume(resume);
+  await prewarmMediaFromResume(resume);
+  await renderResume(resume);
 
   const reduced = prefersReducedMotion();
 

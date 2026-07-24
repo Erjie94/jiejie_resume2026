@@ -337,6 +337,7 @@ export function initGsap({ reducedMotion = false, initialHash = '' } = {}) {
     'wheel',
     (e) => {
       if (busy || isInteractingWithText()) return;
+      if (document.body.classList.contains('is-lightbox-open')) return;
       if (e.target.closest('input, textarea, select, [contenteditable="true"]')) return;
 
       const panel = panels[current];
@@ -396,6 +397,7 @@ export function initGsap({ reducedMotion = false, initialHash = '' } = {}) {
     'touchmove',
     (e) => {
       if (!touchActive || busy || isInteractingWithText() || e.touches.length !== 1) return;
+      if (document.body.classList.contains('is-lightbox-open')) return;
 
       const dy = touchStartY - e.touches[0].clientY;
       const dx = Math.abs(e.touches[0].clientX - touchStartX);
@@ -435,7 +437,7 @@ export function initGsap({ reducedMotion = false, initialHash = '' } = {}) {
   pageEl.addEventListener(
     'touchend',
     (e) => {
-      if (!touchActive || busy || isInteractingWithText()) {
+      if (!touchActive || busy || isInteractingWithText() || document.body.classList.contains('is-lightbox-open')) {
         touchActive = false;
         touchEdgeOverscroll = 0;
         touchWasAtEdge = false;
@@ -482,6 +484,7 @@ export function initGsap({ reducedMotion = false, initialHash = '' } = {}) {
 
   window.addEventListener('keydown', (e) => {
     if (busy || isInteractingWithText()) return;
+    if (document.body.classList.contains('is-lightbox-open')) return;
     if (e.target.closest('input, textarea, select, [contenteditable="true"]')) return;
 
     if (['ArrowDown', 'PageDown'].includes(e.key) || (e.key === ' ' && !e.shiftKey)) {

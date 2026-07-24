@@ -1003,8 +1003,25 @@ body.is-panels .section {
   min-width: 0;
 }
 
+/* 文字優先：左欄依內容寬度，右欄圖片只吃剩餘空間 */
 .timeline-h__detail-layout.has-media {
-  grid-template-columns: minmax(0, 1fr) minmax(0, 40%);
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
+.timeline-h__detail-layout.has-media .timeline-h__copy {
+  flex: 0 0 auto;
+  width: max-content;
+  max-width: min(42rem, 100%);
+}
+
+.timeline-h__detail-layout.has-media .timeline-h__media {
+  flex: 1 1 0;
+  min-width: 0;
+  width: auto;
+  max-width: none;
 }
 
 .timeline-h__copy {
@@ -1022,7 +1039,8 @@ body.is-panels .section {
   font-size: clamp(1.15rem, 2.4vw, 1.45rem);
   letter-spacing: 0.04em;
   margin-bottom: 0.2rem;
-  overflow-wrap: anywhere;
+  overflow-wrap: normal;
+  word-break: normal;
 }
 
 .timeline-h__detail-company {
@@ -1048,7 +1066,8 @@ body.is-panels .section {
 }
 
 .timeline-h__highlights li {
-  overflow-wrap: anywhere;
+  overflow-wrap: normal;
+  word-break: normal;
 }
 
 .timeline-h__media {
@@ -1056,6 +1075,30 @@ body.is-panels .section {
   gap: var(--space-2);
   width: 100%;
   min-width: 0;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
+}
+
+/* 4 張以上：兩欄（4→2×2、6→2×3） */
+.timeline-h__media[data-cols='2'] {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.timeline-h__shot-btn {
+  display: block;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: zoom-in;
+  border-radius: var(--photo-radius);
+  min-width: 0;
+}
+
+.timeline-h__shot-btn:focus-visible {
+  outline: 2px solid var(--brand-coral);
+  outline-offset: 2px;
 }
 
 .timeline-h__shot {
@@ -1067,6 +1110,156 @@ body.is-panels .section {
   border-radius: var(--photo-radius);
   border: 1px solid var(--color-line);
   background: color-mix(in srgb, var(--brand-sky) 40%, #fff);
+  pointer-events: none;
+}
+
+video.timeline-h__shot {
+  pointer-events: auto;
+  cursor: default;
+}
+
+/* 張數越多，單張越高上限越低，避免撐破區塊 */
+.timeline-h__media[data-count='2'] .timeline-h__shot {
+  max-height: 11rem;
+}
+
+.timeline-h__media[data-count='3'] .timeline-h__shot {
+  max-height: 8rem;
+}
+
+.timeline-h__media[data-cols='2'] .timeline-h__shot {
+  max-height: 9rem;
+}
+
+.timeline-h__media[data-count='5'] .timeline-h__shot,
+.timeline-h__media[data-count='6'] .timeline-h__shot {
+  max-height: 7.5rem;
+}
+
+.timeline-h__media[data-count='7'] .timeline-h__shot,
+.timeline-h__media[data-count='8'] .timeline-h__shot,
+.timeline-h__media[data-count='9'] .timeline-h__shot,
+.timeline-h__media[data-count='10'] .timeline-h__shot {
+  max-height: 6.5rem;
+}
+
+/* ========== 圖片放大預覽 ========== */
+.lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  height: 100dvh;
+  max-height: 100dvh;
+  padding:
+    max(var(--space-3), env(safe-area-inset-top, 0px))
+    max(var(--space-3), env(safe-area-inset-right, 0px))
+    max(var(--space-3), env(safe-area-inset-bottom, 0px))
+    max(var(--space-3), env(safe-area-inset-left, 0px));
+  box-sizing: border-box;
+  overflow: hidden;
+  overscroll-behavior: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.lightbox[hidden] {
+  display: none;
+}
+
+.lightbox__backdrop {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  margin: 0;
+  padding: 0;
+  cursor: zoom-out;
+  background: color-mix(in srgb, var(--color-ink) 72%, transparent);
+}
+
+.lightbox__figure {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: min(96vw, 72rem);
+  max-width: 100%;
+  max-height: 100%;
+  pointer-events: none;
+}
+
+.lightbox__img {
+  display: block;
+  max-width: 100%;
+  max-height: min(88vh, 88dvh);
+  width: auto;
+  height: auto;
+  margin: 0 auto;
+  object-fit: contain;
+  border-radius: var(--photo-radius);
+  box-shadow: 0 12px 40px color-mix(in srgb, var(--color-ink) 35%, transparent);
+  pointer-events: auto;
+}
+
+.lightbox__close {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  width: 2.25rem;
+  height: 2.25rem;
+  border: 0;
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 1.35rem;
+  line-height: 1;
+  color: var(--color-ink);
+  background: color-mix(in srgb, #fff 88%, var(--brand-sky));
+  pointer-events: auto;
+  z-index: 2;
+}
+
+.lightbox__close:hover {
+  background: #fff;
+}
+
+.lightbox__close:focus-visible {
+  outline: 2px solid var(--brand-coral);
+  outline-offset: 2px;
+}
+
+body.is-lightbox-open {
+  overflow: hidden;
+  touch-action: none;
+}
+
+@media (max-width: 900px) {
+  .lightbox {
+    padding:
+      max(1rem, env(safe-area-inset-top, 0px))
+      max(0.75rem, env(safe-area-inset-right, 0px))
+      max(1rem, env(safe-area-inset-bottom, 0px))
+      max(0.75rem, env(safe-area-inset-left, 0px));
+  }
+
+  .lightbox__figure {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .lightbox__img {
+    max-width: 100%;
+    max-height: min(82vh, 82dvh);
+  }
+
+  .lightbox__close {
+    top: max(0.35rem, env(safe-area-inset-top, 0px));
+    right: max(0.35rem, env(safe-area-inset-right, 0px));
+  }
 }
 
 @media (max-width: 900px) {
@@ -1090,7 +1283,17 @@ body.is-panels .section {
   }
 
   .timeline-h__detail-layout.has-media {
-    grid-template-columns: 1fr;
+    flex-direction: column;
+  }
+
+  .timeline-h__detail-layout.has-media .timeline-h__copy {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .timeline-h__detail-layout.has-media .timeline-h__media {
+    flex: none;
+    width: 100%;
   }
 
   .cert-list {

@@ -1,11 +1,12 @@
-import { qs, assetUrl, resolveMediaList, isVideoUrl } from './utils.js';
+import { qs, assetUrl, resolveMediaItemsAsync, isVideoUrl } from './utils.js';
+import { initLightbox } from './lightbox.js';
 
 function setText(selector, value) {
   const el = qs(selector);
   if (el && value != null) el.textContent = value;
 }
 
-export function renderResume(data) {
+export async function renderResume(data) {
   const { profile, about, experience, projects, contact } = data;
 
   setText('[data-field="name"]', profile.name);
@@ -52,7 +53,7 @@ export function renderResume(data) {
   }
 
   renderExperience(experience);
-  renderProjects(projects);
+  await renderProjects(projects);
 
   setText('[data-field="contact-heading"]', contact.heading);
   setText('[data-field="contact-message"]', contact.message);
@@ -108,15 +109,25 @@ function renderExperience(experience = []) {
   let animating = false;
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  function buildDetailMarkup(item) {
-    const media = resolveMediaList(item.picture);
-    const mediaHtml = media.length
-      ? `<div class="timeline-h__media">${media
-          .map((src) =>
-            isVideoUrl(src)
-              ? `<video class="timeline-h__shot" src="${escapeAttr(src)}" controls playsinline preload="metadata"></video>`
-              : `<img class="timeline-h__shot" src="${escapeAttr(src)}" alt="${escapeAttr(item.role)} 相關照片" loading="lazy" />`,
-          )
+  function mediaItemHtml(url, alt) {
+    if (isVideoUrl(url)) {
+      return `<video class="timeline-h__shot" src="${escapeAttr(url)}" controls playsinline preload="metadata"></video>`;
+    }
+
+    return `<button type="button" class="timeline-h__shot-btn" data-lightbox-src="${escapeAttr(url)}" data-lightbox-alt="${escapeAttr(alt)}" aria-label="放大預覽照片">
+        <img class="timeline-h__shot" src="${escapeAttr(url)}" alt="${escapeAttr(alt)}" loading="lazy" decoding="async" />
+      </button>`;
+  }
+
+  async function buildDetailMarkup(item) {
+    const media = await resolveMediaItemsAsync(item.picture);
+    const count = media.length;
+    /* 4 張以上改為兩欄（4→2×2、6→2×3），避免直向堆疊超出 */
+    const cols = count >= 4 ? 2 : 1;
+    const alt = `${item.role} 相關照片`;
+    const mediaHtml = count
+      ? `<div class="timeline-h__media" data-count="${count}" data-cols="${cols}">${media
+          .map((m) => mediaItemHtml(m.url, alt))
           .join('')}</div>`
       : '';
 
@@ -160,7 +171,7 @@ function renderExperience(experience = []) {
 
     const incoming = document.createElement('div');
     incoming.className = 'timeline-h__slide';
-    incoming.innerHTML = buildDetailMarkup(item);
+    incoming.innerHTML = await buildDetailMarkup(item);
 
     const outgoing = stageEl.querySelector('.timeline-h__slide');
 
@@ -230,6 +241,8 @@ function renderExperience(experience = []) {
   });
 
   if (rail) initHorizontalScroll(rail);
+
+  initLightbox({ root });
 
   if (experience.length) showDetail(0, { instant: true });
 }
@@ -326,20 +339,19 @@ function projectHasTag(project, tag) {
 function renderProjects(projects = []) {
   const projectsEl = qs('[data-field="projects"]');
   const filtersEl = qs('[data-field="project-filters"]');
-  if (!projectsEl) return;
+  if (!projectsEl) return Promise.resolve();
 
   const allTags = collectProjectTags(projects);
   /** @type {Set<string>} */
   const activeTags = new Set();
 
-  function projectItemHtml(p, index) {
-    const media = resolveMediaList(p.image, { defaultExt: '.png' }).slice(0, 3);
+  function projectItemHtml(p, index, media) {
     const mediaHtml = media
-      .map((src) => {
-        if (isVideoUrl(src)) {
-          return `<video class="project-item__media" src="${escapeAttr(src)}" controls playsinline preload="metadata"></video>`;
+      .map((item) => {
+        if (isVideoUrl(item.url)) {
+          return `<video class="project-item__media" src="${escapeAttr(item.url)}" controls playsinline preload="metadata"></video>`;
         }
-        return `<img class="project-item__media" src="${escapeAttr(src)}" alt="${escapeAttr(p.title)}" loading="lazy" />`;
+        return `<img class="project-item__media" src="${escapeAttr(item.url)}" alt="${escapeAttr(p.title)}" loading="lazy" decoding="async" />`;
       })
       .join('');
 
@@ -418,8 +430,14 @@ function renderProjects(projects = []) {
     });
   }
 
-  projectsEl.innerHTML = projects.map((p, i) => projectItemHtml(p, i)).join('');
-  applyFilter();
+  return Promise.all(
+    projects.map((p) => resolveMediaItemsAsync(p.image).then((items) => items.slice(0, 3))),
+  ).then((resolvedMedia) => {
+    projectsEl.innerHTML = projects
+      .map((p, i) => projectItemHtml(p, i, resolvedMedia[i]))
+      .join('');
+    applyFilter();
+  });
 }
 
 function escapeHtml(str) {
