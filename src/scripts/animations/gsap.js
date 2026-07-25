@@ -54,6 +54,8 @@ export function initGsap({ reducedMotion = false, initialHash = '' } = {}) {
     const title = panel.querySelector('.section__title');
     if (title) nodes.push(title);
     panel.querySelectorAll('[data-animate="fade-up"]').forEach((el) => nodes.push(el));
+    const aboutSubtitle = panel.querySelector('.about__subtitle');
+    if (aboutSubtitle) nodes.push(aboutSubtitle);
     panel.querySelectorAll('.tag-chip, .cert-card').forEach((el) => nodes.push(el));
     panel.querySelectorAll('.timeline-h__node').forEach((el) => nodes.push(el));
     const contact = panel.querySelector('.contact-layout') || panel.querySelector('.contact-body');
@@ -82,9 +84,7 @@ export function initGsap({ reducedMotion = false, initialHash = '' } = {}) {
       panel.style.maxHeight = `${viewportH}px`;
     });
     gsap.set(track, { y: -current * viewportH });
-    window.scrollTo(0, 0);
-    document.documentElement.scrollTop = 0;
-    document.body.scrollTop = 0;
+    resetWindowScroll();
     // 等高度套用後再判斷是否需要內層捲動
     requestAnimationFrame(syncPanelScrollable);
   }
@@ -93,6 +93,9 @@ export function initGsap({ reducedMotion = false, initialHash = '' } = {}) {
     window.scrollTo(0, 0);
     document.documentElement.scrollTop = 0;
     document.body.scrollTop = 0;
+    // scrollIntoView 仍可能捲動 overflow:hidden 的 .page，必須歸零
+    const pageEl = document.querySelector('.page');
+    if (pageEl) pageEl.scrollTop = 0;
   }
 
   function setActiveNav(index) {
@@ -111,6 +114,7 @@ export function initGsap({ reducedMotion = false, initialHash = '' } = {}) {
 
     const title = panel.querySelector('.section__title');
     const fadeItems = panel.querySelectorAll('[data-animate="fade-up"]');
+    const aboutSubtitle = panel.querySelector('.about__subtitle');
     const chips = panel.querySelectorAll('.tag-chip, .cert-card');
     const nodes = panel.querySelectorAll('.timeline-h__node');
     const contact = panel.querySelector('.contact-layout') || panel.querySelector('.contact-body');
@@ -135,11 +139,14 @@ export function initGsap({ reducedMotion = false, initialHash = '' } = {}) {
     if (fadeItems.length) {
       tl.to(fadeItems, { y: 0, opacity: 1, pointerEvents: 'auto', stagger: 0.1, duration: 0.55 }, '-=0.2');
     }
+    if (aboutSubtitle) {
+      tl.to(aboutSubtitle, { y: 0, opacity: 1, pointerEvents: 'auto', duration: 0.4 }, '-=0.25');
+    }
     if (chips.length) {
       tl.to(
         chips,
         { y: 0, opacity: 1, pointerEvents: 'auto', stagger: 0.06, duration: 0.45 },
-        fadeItems.length ? '-=0.25' : '-=0.15',
+        fadeItems.length || aboutSubtitle ? '-=0.25' : '-=0.15',
       );
     }
     if (nodes.length) {

@@ -149,14 +149,27 @@ function renderExperience(experience = []) {
     `;
   }
 
+  /** 只在橫向軌道內捲動，避免 scrollIntoView 連帶捲動 .page 把 Hero 推走 */
+  function scrollRailToButton(btn) {
+    if (!rail || !btn) return;
+    const railRect = rail.getBoundingClientRect();
+    const btnRect = btn.getBoundingClientRect();
+    let delta = 0;
+    if (btnRect.left < railRect.left + 8) {
+      delta = btnRect.left - railRect.left - 8;
+    } else if (btnRect.right > railRect.right - 8) {
+      delta = btnRect.right - railRect.right + 8;
+    }
+    if (!delta) return;
+    rail.scrollBy({ left: delta, behavior: reduceMotion ? 'auto' : 'smooth' });
+  }
+
   function setActiveButton(index) {
     buttons.forEach((btn) => {
       const active = Number(btn.dataset.expIndex) === index;
       btn.classList.toggle('is-active', active);
       btn.setAttribute('aria-expanded', active ? 'true' : 'false');
-      if (active) {
-        btn.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', inline: 'nearest', block: 'nearest' });
-      }
+      if (active) scrollRailToButton(btn);
     });
   }
 

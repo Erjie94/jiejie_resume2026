@@ -35,6 +35,8 @@ body.is-panels .page {
   height: 100dvh;
   min-height: 0;
   overflow: hidden;
+  /* clip 禁止程式化捲動（scrollIntoView 仍可能捲動 overflow:hidden） */
+  overflow: clip;
 }
 
 body.is-panels .panels-track {
@@ -50,6 +52,7 @@ body.is-panels:not(.is-panels-ready) .hero__tagline,
 body.is-panels:not(.is-panels-ready) .hero__role,
 body.is-panels:not(.is-panels-ready) .hero__actions .btn,
 body.is-panels:not(.is-panels-ready) .section__title,
+body.is-panels:not(.is-panels-ready) .about__subtitle,
 body.is-panels:not(.is-panels-ready) [data-animate='fade-up'],
 body.is-panels:not(.is-panels-ready) .tag-chip,
 body.is-panels:not(.is-panels-ready) .cert-card,
