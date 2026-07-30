@@ -261,27 +261,128 @@ function renderExperience(experience = []) {
 }
 
 /** 橫向軌道：隱藏捲軸，支援滑鼠拖曳／滾輪與觸控滑動（不干擾按鈕點擊） */
-function initHorizontalScroll(rail) {
+function initHorizontalScroll(rail, { pageSnap = false, onPageChange } = {}) {
   let pointerId = null;
   let startX = 0;
+  let startY = 0;
   let startScroll = 0;
   let dragging = false;
+  let axis = null; // null | 'x' | 'y'
+  let paging = false;
+
+  if (pageSnap) rail.classList.add('is-paged');
+
+  function pageWidth() {
+    return rail.clientWidth || 1;
+  }
+
+  function clampIndex(index, count) {
+    return Math.max(0, Math.min(count - 1, index));
+  }
+
+  function visibleCount() {
+    return [...rail.children].filter(
+      (el) => el.nodeType === 1 && !el.hidden && !el.classList.contains('is-filtered-out'),
+    ).length;
+  }
+
+  function animateTo(targetLeft, { duration = 560 } = {}) {
+    if (paging) return Promise.resolve();
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const from = rail.scrollLeft;
+    const maxLeft = Math.max(0, rail.scrollWidth - rail.clientWidth);
+    const to = Math.max(0, Math.min(maxLeft, targetLeft));
+
+    const finish = () => {
+      rail.scrollLeft = to;
+      rail.classList.remove('is-animating');
+      paging = false;
+      onPageChange?.(Math.round(to / pageWidth()));
+    };
+
+    if (Math.abs(to - from) < 1) {
+      finish();
+      return Promise.resolve();
+    }
+
+    if (reduce) {
+      finish();
+      return Promise.resolve();
+    }
+
+    paging = true;
+    rail.classList.add('is-animating');
+    const start = performance.now();
+
+    return new Promise((resolve) => {
+      function frame(now) {
+        const t = Math.min(1, (now - start) / duration);
+        const eased = 1 - Math.pow(1 - t, 3);
+        rail.scrollLeft = from + (to - from) * eased;
+        if (t < 1) {
+          requestAnimationFrame(frame);
+          return;
+        }
+        finish();
+        resolve();
+      }
+      requestAnimationFrame(frame);
+    });
+  }
+
+  function goPage(dir) {
+    const count = Math.max(1, visibleCount());
+    const index = Math.round(rail.scrollLeft / pageWidth());
+    const next = clampIndex(index + dir, count);
+    return animateTo(next * pageWidth());
+  }
+
+  function snapAfterDrag() {
+    const page = pageWidth();
+    const count = Math.max(1, visibleCount());
+    const startIndex = Math.round(startScroll / page);
+    const delta = rail.scrollLeft - startScroll;
+    const threshold = Math.max(48, page * 0.18);
+
+    let nextIndex = startIndex;
+    if (delta > threshold) nextIndex = startIndex + 1;
+    else if (delta < -threshold) nextIndex = startIndex - 1;
+    else nextIndex = Math.round(rail.scrollLeft / page);
+
+    return animateTo(clampIndex(nextIndex, count) * page);
+  }
+
+  rail.__goPage = goPage;
+  rail.__animateToPage = (index) => animateTo(clampIndex(index, visibleCount()) * pageWidth());
 
   rail.addEventListener('pointerdown', (e) => {
     if (e.pointerType === 'mouse' && e.button !== 0) return;
+    /* 僅避開需直接操作的控件；時間線按鈕仍可拖曳（超過門檻才算拖） */
+    if (e.target.closest('video, a, input, textarea, select')) return;
+    if (paging) return;
     pointerId = e.pointerId;
     startX = e.clientX;
+    startY = e.clientY;
     startScroll = rail.scrollLeft;
     dragging = false;
+    axis = null;
     rail.dataset.dragging = '0';
   });
 
   rail.addEventListener('pointermove', (e) => {
     if (pointerId == null || e.pointerId !== pointerId) return;
     const dx = e.clientX - startX;
+    const dy = e.clientY - startY;
 
-    // 超過門檻才進入拖曳，並延後 capture，避免吃掉 button click
-    if (!dragging && Math.abs(dx) > 10) {
+    // 先判斷軸向：垂直為主則放棄橫拖，讓手機可上下翻頁
+    if (!dragging && axis == null) {
+      if (Math.abs(dx) < 10 && Math.abs(dy) < 10) return;
+      if (Math.abs(dy) > Math.abs(dx)) {
+        axis = 'y';
+        pointerId = null;
+        return;
+      }
+      axis = 'x';
       dragging = true;
       rail.dataset.dragging = '1';
       rail.classList.add('is-grabbing');
@@ -292,7 +393,7 @@ function initHorizontalScroll(rail) {
       }
     }
 
-    if (!dragging) return;
+    if (axis !== 'x' || !dragging) return;
     rail.scrollLeft = startScroll - dx;
     e.preventDefault();
   });
@@ -302,6 +403,7 @@ function initHorizontalScroll(rail) {
     const wasDragging = dragging;
     pointerId = null;
     dragging = false;
+    axis = null;
     rail.classList.remove('is-grabbing');
 
     if (wasDragging) {
@@ -309,6 +411,12 @@ function initHorizontalScroll(rail) {
       window.setTimeout(() => {
         rail.dataset.dragging = '0';
       }, 80);
+
+      if (pageSnap) {
+        // 先鎖住互動，再補上與箭頭相同的換頁轉場
+        rail.classList.add('is-animating');
+        snapAfterDrag();
+      }
     } else {
       rail.dataset.dragging = '0';
     }
@@ -320,8 +428,24 @@ function initHorizontalScroll(rail) {
   rail.addEventListener(
     'wheel',
     (e) => {
-      if (Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return;
       if (rail.scrollWidth <= rail.clientWidth + 2) return;
+
+      if (pageSnap) {
+        /*
+          作品區：垂直滾輪留給全站翻頁；
+          僅在明確橫向滾動（deltaX）時切換作品，避免擋掉向下換頁。
+        */
+        if (Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;
+        e.preventDefault();
+        e.stopPropagation();
+        if (paging) return;
+        const dir = Math.sign(e.deltaX);
+        if (!dir) return;
+        goPage(dir);
+        return;
+      }
+
+      if (Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return;
       rail.scrollLeft += e.deltaY;
       e.preventDefault();
       e.stopPropagation();
@@ -352,11 +476,59 @@ function projectHasTag(project, tag) {
 function renderProjects(projects = []) {
   const projectsEl = qs('[data-field="projects"]');
   const filtersEl = qs('[data-field="project-filters"]');
+  const carousel = qs('[data-project-carousel]');
+  const prevBtn = qs('[data-project-prev]');
+  const nextBtn = qs('[data-project-next]');
   if (!projectsEl) return Promise.resolve();
 
   const allTags = collectProjectTags(projects);
   /** @type {Set<string>} */
   const activeTags = new Set();
+
+  function visibleItems() {
+    return [...projectsEl.querySelectorAll('.project-item')].filter(
+      (item) => !item.hidden && !item.classList.contains('is-filtered-out'),
+    );
+  }
+
+  function syncActiveItem() {
+    const items = visibleItems();
+    const page = projectsEl.clientWidth || 1;
+    const index = Math.round(projectsEl.scrollLeft / page);
+    items.forEach((item, i) => item.classList.toggle('is-active', i === index));
+    syncCarouselNav();
+  }
+
+  function syncCarouselNav() {
+    const items = visibleItems();
+    const atStart = projectsEl.scrollLeft <= 4;
+    const atEnd =
+      projectsEl.scrollLeft + projectsEl.clientWidth >= projectsEl.scrollWidth - 4;
+    const alone = items.length <= 1;
+
+    if (prevBtn) prevBtn.disabled = alone || atStart;
+    if (nextBtn) nextBtn.disabled = alone || atEnd;
+    if (carousel) carousel.classList.toggle('is-single', alone);
+  }
+
+  function markSwiped() {
+    carousel?.classList.add('has-swiped');
+  }
+
+  function goBy(dir) {
+    markSwiped();
+    if (typeof projectsEl.__goPage === 'function') {
+      projectsEl.__goPage(dir).then(syncActiveItem);
+      return;
+    }
+    const items = visibleItems();
+    if (!items.length) return;
+    const page = projectsEl.clientWidth || 1;
+    const index = Math.round(projectsEl.scrollLeft / page);
+    const next = Math.max(0, Math.min(items.length - 1, index + dir));
+    projectsEl.scrollTo({ left: next * page, behavior: 'smooth' });
+    window.setTimeout(syncActiveItem, 360);
+  }
 
   function projectItemHtml(p, index, media) {
     const mediaHtml = media
@@ -364,7 +536,9 @@ function renderProjects(projects = []) {
         if (isVideoUrl(item.url)) {
           return `<video class="project-item__media" src="${escapeAttr(item.url)}" controls playsinline preload="metadata"></video>`;
         }
-        return `<img class="project-item__media" src="${escapeAttr(item.url)}" alt="${escapeAttr(p.title)}" loading="lazy" decoding="async" />`;
+        return `<button type="button" class="project-item__shot-btn" data-lightbox-src="${escapeAttr(item.url)}" data-lightbox-alt="${escapeAttr(p.title)}" aria-label="放大預覽 ${escapeAttr(p.title)}">
+          <img class="project-item__media" src="${escapeAttr(item.url)}" alt="${escapeAttr(p.title)}" loading="lazy" decoding="async" />
+        </button>`;
       })
       .join('');
 
@@ -405,6 +579,8 @@ function renderProjects(projects = []) {
       });
     }
 
+    projectsEl.scrollLeft = 0;
+    syncActiveItem();
     window.dispatchEvent(new CustomEvent('panels:contentchange'));
   }
 
@@ -443,12 +619,34 @@ function renderProjects(projects = []) {
     });
   }
 
+  prevBtn?.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    goBy(-1);
+  });
+
+  nextBtn?.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    goBy(1);
+  });
+
+  projectsEl.addEventListener('scroll', () => syncActiveItem(), { passive: true });
+
   return Promise.all(
     projects.map((p) => resolveMediaItemsAsync(p.image).then((items) => items.slice(0, 3))),
   ).then((resolvedMedia) => {
     projectsEl.innerHTML = projects
       .map((p, i) => projectItemHtml(p, i, resolvedMedia[i]))
       .join('');
+    initHorizontalScroll(projectsEl, {
+      pageSnap: true,
+      onPageChange: () => {
+        markSwiped();
+        syncActiveItem();
+      },
+    });
+    initLightbox({ root: projectsEl });
     applyFilter();
   });
 }

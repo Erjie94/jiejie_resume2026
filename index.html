@@ -102,7 +102,32 @@
         <section id="projects" class="panel section" data-section="projects">
           <h2 class="section__title">作品</h2>
           <ul class="tag-list" data-field="project-filters" aria-label="依標籤篩選作品"></ul>
-          <ul class="project-list" data-field="projects"></ul>
+          <div class="project-carousel" data-project-carousel>
+            <button
+              type="button"
+              class="project-carousel__nav project-carousel__nav--prev"
+              data-project-prev
+              aria-label="上一件作品"
+            >
+              ‹
+            </button>
+            <ul class="project-list" data-field="projects" aria-label="作品橫向瀏覽"></ul>
+            <button
+              type="button"
+              class="project-carousel__nav project-carousel__nav--next"
+              data-project-next
+              aria-label="下一件作品"
+            >
+              ›
+            </button>
+            <div class="project-carousel__hint" aria-hidden="true">
+              <span class="project-carousel__hint-chevron" data-dir="prev">‹</span>
+              <span class="project-carousel__hint-track">
+                <span class="project-carousel__hint-dot"></span>
+              </span>
+              <span class="project-carousel__hint-chevron" data-dir="next">›</span>
+            </div>
+          </div>
         </section>
 
         <section id="contact" class="panel section" data-section="contact">

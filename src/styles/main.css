@@ -832,6 +832,379 @@ body.is-panels .section {
   display: none;
 }
 
+.project-carousel {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+}
+
+.project-carousel__nav {
+  position: absolute;
+  top: 50%;
+  z-index: 3;
+  transform: translateY(-50%);
+  width: 2.35rem;
+  height: 2.35rem;
+  border: 1px solid var(--color-line);
+  border-radius: 999px;
+  background: color-mix(in srgb, #fff 88%, var(--brand-sky));
+  color: var(--color-ink);
+  font-size: 1.55rem;
+  line-height: 1;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  padding: 0;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    background var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out),
+    opacity var(--dur-fast) var(--ease-out);
+}
+
+.project-carousel__nav:hover:not(:disabled),
+.project-carousel__nav:focus-visible:not(:disabled) {
+  outline: none;
+  background: #fff;
+  border-color: color-mix(in srgb, var(--brand-coral) 55%, transparent);
+}
+
+.project-carousel__nav:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.project-carousel__nav--prev {
+  left: 0.15rem;
+  right: auto;
+}
+
+.project-carousel__nav--next {
+  right: 0.15rem;
+  left: auto;
+}
+
+.project-carousel.is-single .project-carousel__nav,
+.project-carousel.is-single .project-carousel__hint {
+  display: none;
+}
+
+.project-carousel__hint {
+  display: none;
+}
+
+.project-list {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: stretch;
+  gap: 0;
+  list-style: none;
+  padding: 0.35rem 0 0.85rem;
+  margin: 0;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  scroll-snap-type: x mandatory;
+  cursor: grab;
+  touch-action: pan-y;
+  user-select: none;
+  position: relative;
+  z-index: 0;
+}
+
+.project-list::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+.project-list.is-grabbing {
+  cursor: grabbing;
+  touch-action: none;
+}
+
+.project-list.is-paged {
+  /* 換頁改由 JS 動畫處理，避免 CSS snap 搶先對齊而沒有轉場 */
+  scroll-snap-type: none;
+  /* 預設允許上下滑（翻頁）；橫滑由 JS 軸向鎖定接手 */
+  touch-action: pan-y;
+}
+
+.project-list.is-animating {
+  pointer-events: none;
+}
+
+.project-item {
+  flex: 0 0 100%;
+  width: 100%;
+  max-width: 100%;
+  min-width: 100%;
+  padding: var(--space-2) 2.75rem;
+  border: 0;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  box-sizing: border-box;
+  opacity: 0.42;
+  transform: scale(0.985);
+  transition:
+    opacity var(--dur-med) var(--ease-out),
+    transform var(--dur-med) var(--ease-out);
+}
+
+.project-item.is-active {
+  opacity: 1;
+  transform: none;
+}
+
+.project-item__media-wrap {
+  display: grid;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+  width: 100%;
+  max-width: 100%;
+  align-items: start;
+  justify-content: start;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.project-item__media-wrap:has(> :nth-child(2):last-child) {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.project-item__media-wrap:has(> :nth-child(3)) {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.project-item__shot-btn {
+  display: block;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: zoom-in;
+  border-radius: var(--photo-radius);
+  min-width: 0;
+  overflow: hidden;
+}
+
+.project-item__shot-btn:focus-visible {
+  outline: 2px solid var(--brand-coral);
+  outline-offset: 2px;
+}
+
+.project-item__media {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+  max-height: 14rem;
+  object-fit: contain;
+  object-position: center top;
+  border-radius: var(--photo-radius);
+  border: 1px solid var(--color-line);
+  background: color-mix(in srgb, var(--brand-sky) 35%, #fff);
+  pointer-events: none;
+}
+
+video.project-item__media {
+  pointer-events: auto;
+  cursor: default;
+}
+
+@media (max-width: 900px) {
+  .project-item {
+    padding-inline: var(--space-2);
+  }
+
+  .project-carousel__nav {
+    display: none !important;
+  }
+
+  /* 左右淡出邊緣，暗示還有內容 */
+  .project-carousel:not(.is-single)::before,
+  .project-carousel:not(.is-single)::after {
+    content: '';
+    position: absolute;
+    top: 0.35rem;
+    bottom: 0.85rem;
+    width: 1.5rem;
+    z-index: 2;
+    pointer-events: none;
+  }
+
+  .project-carousel:not(.is-single)::before {
+    left: 0;
+    background: linear-gradient(
+      to right,
+      color-mix(in srgb, var(--color-bg-1) 75%, transparent),
+      transparent
+    );
+  }
+
+  .project-carousel:not(.is-single)::after {
+    right: 0;
+    background: linear-gradient(
+      to left,
+      color-mix(in srgb, var(--color-bg-1) 75%, transparent),
+      transparent
+    );
+  }
+
+  .project-carousel__hint {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.55rem;
+    position: absolute;
+    left: 50%;
+    bottom: 0.15rem;
+    z-index: 3;
+    transform: translateX(-50%);
+    pointer-events: none;
+    color: color-mix(in srgb, var(--color-ink) 55%, var(--brand-coral));
+    opacity: 0.9;
+    animation: project-hint-fade 4.8s var(--ease-out) 0.4s both;
+  }
+
+  .project-carousel.has-swiped .project-carousel__hint,
+  .project-carousel.is-single .project-carousel__hint {
+    display: none;
+  }
+
+  .project-carousel__hint-chevron {
+    font-size: 1.15rem;
+    line-height: 1;
+    animation: project-hint-nudge 1.4s var(--ease-out) infinite;
+  }
+
+  .project-carousel__hint-chevron[data-dir='prev'] {
+    animation-name: project-hint-nudge-left;
+  }
+
+  .project-carousel__hint-chevron[data-dir='next'] {
+    animation-name: project-hint-nudge-right;
+  }
+
+  .project-carousel__hint-track {
+    position: relative;
+    width: 2.4rem;
+    height: 0.2rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--brand-sky) 55%, var(--color-line));
+    overflow: hidden;
+  }
+
+  .project-carousel__hint-dot {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    width: 0.45rem;
+    height: 0.45rem;
+    border-radius: 999px;
+    background: var(--brand-coral);
+    transform: translateY(-50%);
+    animation: project-hint-slide 1.4s var(--ease-out) infinite;
+  }
+
+  .project-item__media-wrap,
+  .project-item__media-wrap:has(> :nth-child(2):last-child),
+  .project-item__media-wrap:has(> :nth-child(3)) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .project-item__media {
+    max-height: 12rem;
+  }
+}
+
+@keyframes project-hint-slide {
+  0% {
+    left: 0;
+    opacity: 0.35;
+  }
+  50% {
+    left: calc(100% - 0.45rem);
+    opacity: 1;
+  }
+  100% {
+    left: 0;
+    opacity: 0.35;
+  }
+}
+
+@keyframes project-hint-nudge-left {
+  0%,
+  100% {
+    transform: translateX(0);
+    opacity: 0.45;
+  }
+  50% {
+    transform: translateX(-0.28rem);
+    opacity: 1;
+  }
+}
+
+@keyframes project-hint-nudge-right {
+  0%,
+  100% {
+    transform: translateX(0);
+    opacity: 0.45;
+  }
+  50% {
+    transform: translateX(0.28rem);
+    opacity: 1;
+  }
+}
+
+@keyframes project-hint-fade {
+  0%,
+  70% {
+    opacity: 0.95;
+  }
+  100% {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+
+@media (max-width: 900px) and (prefers-reduced-motion: reduce) {
+  .project-carousel__hint,
+  .project-carousel__hint-chevron,
+  .project-carousel__hint-dot {
+    animation: none;
+  }
+
+  .project-carousel__hint {
+    opacity: 0.7;
+  }
+}
+
+.project-item h3 {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  letter-spacing: 0.04em;
+}
+
+.project-item p {
+  color: var(--color-muted);
+  margin-block: 0.35rem 0.6rem;
+  line-height: 1.7;
+}
+
+.project-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  color: var(--color-muted);
+}
+
 /* ========== 橫向經歷時間線 ========== */
 .timeline-h {
   display: flex;
@@ -1304,103 +1677,6 @@ body.is-lightbox-open {
   }
 }
 
-.project-list {
-  display: grid;
-  gap: var(--space-3);
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  width: 100%;
-  position: relative;
-  z-index: 0;
-}
-
-.project-item {
-  padding-block: var(--space-2);
-  border-top: 1px solid var(--color-line);
-  min-width: 0;
-  width: 100%;
-}
-
-.project-item__media-wrap {
-  display: grid;
-  gap: var(--space-2);
-  margin-top: var(--space-2);
-  width: 100%;
-  max-width: none;
-  align-items: start;
-  justify-content: start;
-}
-
-/* 一張：佔寬 60% */
-.project-item__media-wrap:has(> :only-child) {
-  grid-template-columns: minmax(0, 1fr);
-  width: 60%;
-  max-width: 60%;
-}
-
-/* 兩張：各 40% */
-.project-item__media-wrap:has(> :nth-child(2):last-child) {
-  grid-template-columns: repeat(2, minmax(0, 40%));
-  width: 100%;
-  max-width: none;
-}
-
-/* 三張：各 30% */
-.project-item__media-wrap:has(> :nth-child(3)) {
-  grid-template-columns: repeat(3, minmax(0, 30%));
-  width: 100%;
-  max-width: none;
-}
-
-.project-item__media {
-  display: block;
-  width: 100%;
-  height: auto;
-  max-width: 100%;
-  object-fit: contain;
-  object-position: center top;
-  border-radius: var(--photo-radius);
-  border: 1px solid var(--color-line);
-  background: color-mix(in srgb, var(--brand-sky) 35%, #fff);
-}
-
-@media (max-width: 900px) {
-  .project-item__media-wrap,
-  .project-item__media-wrap:has(> :only-child),
-  .project-item__media-wrap:has(> :nth-child(2):last-child),
-  .project-item__media-wrap:has(> :nth-child(3)) {
-    grid-template-columns: minmax(0, 1fr);
-    width: 100%;
-    max-width: 100%;
-  }
-
-  .project-item__media {
-    width: 100%;
-    height: auto;
-  }
-}
-
-.project-item h3 {
-  font-family: var(--font-display);
-  font-size: 1.15rem;
-  letter-spacing: 0.04em;
-}
-
-.project-item p {
-  color: var(--color-muted);
-  margin-block: 0.35rem 0.6rem;
-  line-height: 1.7;
-}
-
-.project-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
-  font-size: 0.85rem;
-  color: var(--color-muted);
-}
-
 .site-footer {
   padding: var(--space-4) var(--space-3);
   border-top: 1px solid var(--color-line);
@@ -1418,8 +1694,14 @@ body.is-lightbox-open {
   .hamburger span,
   .cert-card,
   .timeline-h__detail,
-  .timeline-h__dot {
+  .timeline-h__dot,
+  .project-item {
     transition: none;
+  }
+
+  .project-item {
+    opacity: 1;
+    transform: none;
   }
 
   .timeline-h__slide {

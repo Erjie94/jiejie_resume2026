@@ -45,8 +45,11 @@ export function initLightbox({ root = document } = {}) {
   if (inited) return { open, close };
   inited = true;
 
-  // 委派到 document，之後動態插入的經歷圖也能用
+  // 委派到 document，之後動態插入的經歷／作品圖也能用
   document.addEventListener('click', (e) => {
+    const rail = e.target.closest('.project-list, .tag-list, .timeline-h__rail');
+    if (rail?.dataset.dragging === '1') return;
+
     const trigger = e.target.closest('[data-lightbox-src]');
     if (!trigger) return;
 
