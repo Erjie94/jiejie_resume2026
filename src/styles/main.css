@@ -838,12 +838,6 @@ body.is-panels .section {
   min-width: 0;
 }
 
-.project-carousel__viewport {
-  overflow: hidden;
-  width: 100%;
-  min-width: 0;
-}
-
 .project-carousel__nav {
   position: absolute;
   top: 50%;
@@ -892,15 +886,14 @@ body.is-panels .section {
 }
 
 .project-carousel.is-single .project-carousel__nav,
-.project-carousel.is-single .project-carousel__hint {
+.project-carousel.is-single .project-carousel__pager {
   display: none;
 }
 
-.project-carousel__hint {
+.project-carousel__pager {
   display: none;
 }
 
-/* Embla container：以 transform 換頁，避免自寫 scrollLeft 卡頓 */
 .project-list {
   display: flex;
   flex-wrap: nowrap;
@@ -911,25 +904,55 @@ body.is-panels .section {
   margin: 0;
   width: 100%;
   max-width: 100%;
-  touch-action: pan-y pinch-zoom;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  scroll-snap-type: x mandatory;
   cursor: grab;
+  touch-action: pan-y;
   user-select: none;
   position: relative;
   z-index: 0;
-  backface-visibility: hidden;
+}
+
+.project-list::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
 }
 
 .project-list.is-grabbing {
   cursor: grabbing;
+  touch-action: none;
+}
+
+.project-list.is-paged {
+  /* 換頁改由 JS 動畫處理，避免 CSS snap 搶先對齊而沒有轉場 */
+  scroll-snap-type: none;
+  touch-action: pan-y;
+}
+
+.project-list.is-button-only {
+  overflow-x: hidden;
+  cursor: default;
+  touch-action: pan-y;
+}
+
+.project-list.is-animating {
+  pointer-events: none;
 }
 
 .project-item {
   flex: 0 0 100%;
   width: 100%;
   max-width: 100%;
-  min-width: 0;
+  min-width: 100%;
   padding: var(--space-2) 2.75rem;
   border: 0;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
   box-sizing: border-box;
   opacity: 0.42;
   transform: scale(0.985);
@@ -1004,94 +1027,74 @@ video.project-item__media {
     padding-inline: var(--space-2);
   }
 
+  /* 桌面側邊箭頭隱藏；改用底部 ‹ ——— › pager */
   .project-carousel__nav {
     display: none !important;
   }
 
-  /* 左右淡出邊緣，暗示還有內容 */
-  .project-carousel:not(.is-single)::before,
-  .project-carousel:not(.is-single)::after {
-    content: '';
-    position: absolute;
-    top: 0.35rem;
-    bottom: 0.85rem;
-    width: 1.5rem;
-    z-index: 2;
-    pointer-events: none;
-  }
-
-  .project-carousel:not(.is-single)::before {
-    left: 0;
-    background: linear-gradient(
-      to right,
-      color-mix(in srgb, var(--color-bg-1) 75%, transparent),
-      transparent
-    );
-  }
-
-  .project-carousel:not(.is-single)::after {
-    right: 0;
-    background: linear-gradient(
-      to left,
-      color-mix(in srgb, var(--color-bg-1) 75%, transparent),
-      transparent
-    );
-  }
-
-  .project-carousel__hint {
+  .project-carousel__pager {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 0.55rem;
-    position: absolute;
-    left: 50%;
-    bottom: 0.15rem;
-    z-index: 3;
-    transform: translateX(-50%);
-    pointer-events: none;
-    color: color-mix(in srgb, var(--color-ink) 55%, var(--brand-coral));
-    opacity: 0.9;
-    animation: project-hint-fade 4.8s var(--ease-out) 0.4s both;
+    gap: 0.85rem;
+    width: 100%;
+    margin-top: 0.15rem;
+    padding: 0.35rem 0 0.15rem;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
   }
 
-  .project-carousel.has-swiped .project-carousel__hint,
-  .project-carousel.is-single .project-carousel__hint {
-    display: none;
+  .project-carousel__pager[hidden] {
+    display: none !important;
   }
 
-  .project-carousel__hint-chevron {
-    font-size: 1.15rem;
+  .project-carousel__pager-btn {
+    display: grid;
+    place-items: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    margin: 0;
+    padding: 0;
+    border: 1px solid var(--color-line);
+    border-radius: 999px;
+    background: color-mix(in srgb, #fff 88%, var(--brand-sky));
+    color: var(--color-ink);
+    font-size: 1.55rem;
     line-height: 1;
-    animation: project-hint-nudge 1.4s var(--ease-out) infinite;
+    cursor: pointer;
+    flex: 0 0 auto;
   }
 
-  .project-carousel__hint-chevron[data-dir='prev'] {
-    animation-name: project-hint-nudge-left;
+  .project-carousel__pager-btn:disabled {
+    opacity: 0.35;
+    cursor: default;
   }
 
-  .project-carousel__hint-chevron[data-dir='next'] {
-    animation-name: project-hint-nudge-right;
+  .project-carousel__dashes {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    min-width: 4.5rem;
+    flex: 0 1 auto;
   }
 
-  .project-carousel__hint-track {
-    position: relative;
-    width: 2.4rem;
-    height: 0.2rem;
+  .project-carousel__dash {
+    display: block;
+    width: 1.1rem;
+    height: 0.22rem;
     border-radius: 999px;
-    background: color-mix(in srgb, var(--brand-sky) 55%, var(--color-line));
-    overflow: hidden;
+    background: color-mix(in srgb, var(--color-ink) 22%, var(--brand-sky));
+    transition:
+      background var(--dur-fast) var(--ease-out),
+      transform var(--dur-fast) var(--ease-out),
+      width var(--dur-fast) var(--ease-out);
   }
 
-  .project-carousel__hint-dot {
-    position: absolute;
-    top: 50%;
-    left: 0;
-    width: 0.45rem;
-    height: 0.45rem;
-    border-radius: 999px;
+  .project-carousel__dash.is-active {
+    width: 1.55rem;
     background: var(--brand-coral);
-    transform: translateY(-50%);
-    animation: project-hint-slide 1.4s var(--ease-out) infinite;
+    transform: scaleY(1.15);
   }
 
   .project-item__media-wrap,
@@ -1102,68 +1105,6 @@ video.project-item__media {
 
   .project-item__media {
     max-height: 12rem;
-  }
-}
-
-@keyframes project-hint-slide {
-  0% {
-    left: 0;
-    opacity: 0.35;
-  }
-  50% {
-    left: calc(100% - 0.45rem);
-    opacity: 1;
-  }
-  100% {
-    left: 0;
-    opacity: 0.35;
-  }
-}
-
-@keyframes project-hint-nudge-left {
-  0%,
-  100% {
-    transform: translateX(0);
-    opacity: 0.45;
-  }
-  50% {
-    transform: translateX(-0.28rem);
-    opacity: 1;
-  }
-}
-
-@keyframes project-hint-nudge-right {
-  0%,
-  100% {
-    transform: translateX(0);
-    opacity: 0.45;
-  }
-  50% {
-    transform: translateX(0.28rem);
-    opacity: 1;
-  }
-}
-
-@keyframes project-hint-fade {
-  0%,
-  70% {
-    opacity: 0.95;
-  }
-  100% {
-    opacity: 0;
-    visibility: hidden;
-  }
-}
-
-@media (max-width: 900px) and (prefers-reduced-motion: reduce) {
-  .project-carousel__hint,
-  .project-carousel__hint-chevron,
-  .project-carousel__hint-dot {
-    animation: none;
-  }
-
-  .project-carousel__hint {
-    opacity: 0.7;
   }
 }
 

@@ -1,7 +1,6 @@
 import gsap from 'gsap';
 import { qs, assetUrl, resolveMediaItemsAsync, isVideoUrl } from './utils.js';
 import { initLightbox } from './lightbox.js';
-import { initProjectCarousel } from './project-carousel.js';
 
 function setText(selector, value) {
   const el = qs(selector);
@@ -247,8 +246,8 @@ function renderExperience(experience = []) {
   if (experience.length) showDetail(0, { instant: true });
 }
 
-/** 橫向軌道：隱藏捲軸，支援滑鼠拖曳／滾輪與觸控滑動（不干擾按鈕點擊） */
-function initHorizontalScroll(rail, { pageSnap = false, onPageChange } = {}) {
+/** 橫向軌道：隱藏捲軸；可選拖曳／滾輪；pageSnap 時以整頁切換 */
+function initHorizontalScroll(rail, { pageSnap = false, allowDrag = true, onPageChange } = {}) {
   let pointerId = null;
   let startX = 0;
   let startY = 0;
@@ -258,6 +257,7 @@ function initHorizontalScroll(rail, { pageSnap = false, onPageChange } = {}) {
   let paging = false;
 
   if (pageSnap) rail.classList.add('is-paged');
+  if (pageSnap && !allowDrag) rail.classList.add('is-button-only');
 
   function pageWidth() {
     return rail.clientWidth || 1;
@@ -342,75 +342,76 @@ function initHorizontalScroll(rail, { pageSnap = false, onPageChange } = {}) {
   rail.__goPage = goPage;
   rail.__animateToPage = (index) => animateTo(clampIndex(index, visibleCount()) * pageWidth());
 
-  rail.addEventListener('pointerdown', (e) => {
-    if (e.pointerType === 'mouse' && e.button !== 0) return;
-    /* 僅避開需直接操作的控件；時間線按鈕仍可拖曳（超過門檻才算拖） */
-    if (e.target.closest('video, a, input, textarea, select')) return;
-    if (paging) return;
-    pointerId = e.pointerId;
-    startX = e.clientX;
-    startY = e.clientY;
-    startScroll = rail.scrollLeft;
-    dragging = false;
-    axis = null;
-    rail.dataset.dragging = '0';
-  });
-
-  rail.addEventListener('pointermove', (e) => {
-    if (pointerId == null || e.pointerId !== pointerId) return;
-    const dx = e.clientX - startX;
-    const dy = e.clientY - startY;
-
-    // 先判斷軸向：垂直為主則放棄橫拖，讓手機可上下翻頁
-    if (!dragging && axis == null) {
-      if (Math.abs(dx) < 10 && Math.abs(dy) < 10) return;
-      if (Math.abs(dy) > Math.abs(dx)) {
-        axis = 'y';
-        pointerId = null;
-        return;
-      }
-      axis = 'x';
-      dragging = true;
-      rail.dataset.dragging = '1';
-      rail.classList.add('is-grabbing');
-      try {
-        rail.setPointerCapture(pointerId);
-      } catch {
-        /* ignore */
-      }
-    }
-
-    if (axis !== 'x' || !dragging) return;
-    rail.scrollLeft = startScroll - dx;
-    e.preventDefault();
-  });
-
-  function endDrag(e) {
-    if (pointerId == null || (e && e.pointerId !== pointerId)) return;
-    const wasDragging = dragging;
-    pointerId = null;
-    dragging = false;
-    axis = null;
-    rail.classList.remove('is-grabbing');
-
-    if (wasDragging) {
-      rail.dataset.dragging = '1';
-      window.setTimeout(() => {
-        rail.dataset.dragging = '0';
-      }, 80);
-
-      if (pageSnap) {
-        // 先鎖住互動，再補上與箭頭相同的換頁轉場
-        rail.classList.add('is-animating');
-        snapAfterDrag();
-      }
-    } else {
+  if (allowDrag) {
+    rail.addEventListener('pointerdown', (e) => {
+      if (e.pointerType === 'mouse' && e.button !== 0) return;
+      /* 僅避開需直接操作的控件；時間線按鈕仍可拖曳（超過門檻才算拖） */
+      if (e.target.closest('video, a, input, textarea, select')) return;
+      if (paging) return;
+      pointerId = e.pointerId;
+      startX = e.clientX;
+      startY = e.clientY;
+      startScroll = rail.scrollLeft;
+      dragging = false;
+      axis = null;
       rail.dataset.dragging = '0';
-    }
-  }
+    });
 
-  rail.addEventListener('pointerup', endDrag);
-  rail.addEventListener('pointercancel', endDrag);
+    rail.addEventListener('pointermove', (e) => {
+      if (pointerId == null || e.pointerId !== pointerId) return;
+      const dx = e.clientX - startX;
+      const dy = e.clientY - startY;
+
+      // 先判斷軸向：垂直為主則放棄橫拖，讓手機可上下翻頁
+      if (!dragging && axis == null) {
+        if (Math.abs(dx) < 10 && Math.abs(dy) < 10) return;
+        if (Math.abs(dy) > Math.abs(dx)) {
+          axis = 'y';
+          pointerId = null;
+          return;
+        }
+        axis = 'x';
+        dragging = true;
+        rail.dataset.dragging = '1';
+        rail.classList.add('is-grabbing');
+        try {
+          rail.setPointerCapture(pointerId);
+        } catch {
+          /* ignore */
+        }
+      }
+
+      if (axis !== 'x' || !dragging) return;
+      rail.scrollLeft = startScroll - dx;
+      e.preventDefault();
+    });
+
+    function endDrag(e) {
+      if (pointerId == null || (e && e.pointerId !== pointerId)) return;
+      const wasDragging = dragging;
+      pointerId = null;
+      dragging = false;
+      axis = null;
+      rail.classList.remove('is-grabbing');
+
+      if (wasDragging) {
+        rail.dataset.dragging = '1';
+        window.setTimeout(() => {
+          rail.dataset.dragging = '0';
+        }, 80);
+
+        if (pageSnap) {
+          rail.classList.add('is-animating');
+          snapAfterDrag();
+        }
+      } else {
+        rail.dataset.dragging = '0';
+      }
+    }
+
+    rail.addEventListener('pointerup', endDrag);
+    rail.addEventListener('pointercancel', endDrag);
+  }
 
   rail.addEventListener(
     'wheel',
@@ -464,17 +465,77 @@ function renderProjects(projects = []) {
   const projectsEl = qs('[data-field="projects"]');
   const filtersEl = qs('[data-field="project-filters"]');
   const carousel = qs('[data-project-carousel]');
-  const viewport = qs('[data-project-viewport]');
-  const prevBtn = qs('[data-project-prev]');
-  const nextBtn = qs('[data-project-next]');
+  const pager = qs('[data-project-pager]');
+  const dashesEl = qs('[data-project-dashes]');
+  const prevBtns = [...document.querySelectorAll('[data-project-prev]')];
+  const nextBtns = [...document.querySelectorAll('[data-project-next]')];
   if (!projectsEl) return Promise.resolve();
 
   const allTags = collectProjectTags(projects);
   /** @type {Set<string>} */
   const activeTags = new Set();
-  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  /** @type {ReturnType<typeof initProjectCarousel> | null} */
-  let projectCarousel = null;
+
+  function visibleItems() {
+    return [...projectsEl.querySelectorAll('.project-item')].filter(
+      (item) => !item.hidden && !item.classList.contains('is-filtered-out'),
+    );
+  }
+
+  function currentIndex() {
+    const page = projectsEl.clientWidth || 1;
+    return Math.round(projectsEl.scrollLeft / page);
+  }
+
+  function syncDashes() {
+    if (!dashesEl) return;
+    const items = visibleItems();
+    const index = currentIndex();
+    dashesEl.innerHTML = items
+      .map(
+        (_, i) =>
+          `<span class="project-carousel__dash${i === index ? ' is-active' : ''}"></span>`,
+      )
+      .join('');
+  }
+
+  function syncActiveItem() {
+    const items = visibleItems();
+    const index = currentIndex();
+    items.forEach((item, i) => item.classList.toggle('is-active', i === index));
+    syncCarouselNav();
+    syncDashes();
+  }
+
+  function syncCarouselNav() {
+    const items = visibleItems();
+    const atStart = projectsEl.scrollLeft <= 4;
+    const atEnd =
+      projectsEl.scrollLeft + projectsEl.clientWidth >= projectsEl.scrollWidth - 4;
+    const alone = items.length <= 1;
+
+    prevBtns.forEach((btn) => {
+      btn.disabled = alone || atStart;
+    });
+    nextBtns.forEach((btn) => {
+      btn.disabled = alone || atEnd;
+    });
+    if (carousel) carousel.classList.toggle('is-single', alone);
+    if (pager) pager.hidden = alone;
+  }
+
+  function goBy(dir) {
+    if (typeof projectsEl.__goPage === 'function') {
+      projectsEl.__goPage(dir).then(syncActiveItem);
+      return;
+    }
+    const items = visibleItems();
+    if (!items.length) return;
+    const page = projectsEl.clientWidth || 1;
+    const index = Math.round(projectsEl.scrollLeft / page);
+    const next = Math.max(0, Math.min(items.length - 1, index + dir));
+    projectsEl.scrollTo({ left: next * page, behavior: 'smooth' });
+    window.setTimeout(syncActiveItem, 360);
+  }
 
   function projectItemHtml(p, index, media) {
     const mediaHtml = media
@@ -525,8 +586,8 @@ function renderProjects(projects = []) {
       });
     }
 
-    projectCarousel?.refresh();
-    projectCarousel?.scrollToStart();
+    projectsEl.scrollLeft = 0;
+    syncActiveItem();
     window.dispatchEvent(new CustomEvent('panels:contentchange'));
   }
 
@@ -565,17 +626,23 @@ function renderProjects(projects = []) {
     });
   }
 
-  prevBtn?.addEventListener('click', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    projectCarousel?.scrollPrev();
+  prevBtns.forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      goBy(-1);
+    });
   });
 
-  nextBtn?.addEventListener('click', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    projectCarousel?.scrollNext();
+  nextBtns.forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      goBy(1);
+    });
   });
+
+  projectsEl.addEventListener('scroll', () => syncActiveItem(), { passive: true });
 
   return Promise.all(
     projects.map((p) => resolveMediaItemsAsync(p.image).then((items) => items.slice(0, 3))),
@@ -583,16 +650,11 @@ function renderProjects(projects = []) {
     projectsEl.innerHTML = projects
       .map((p, i) => projectItemHtml(p, i, resolvedMedia[i]))
       .join('');
-
-    projectCarousel = initProjectCarousel({
-      viewport: viewport || projectsEl.parentElement,
-      container: projectsEl,
-      prevBtn,
-      nextBtn,
-      carouselRoot: carousel,
-      reducedMotion: reduceMotion,
+    initHorizontalScroll(projectsEl, {
+      pageSnap: true,
+      allowDrag: false,
+      onPageChange: () => syncActiveItem(),
     });
-
     initLightbox({ root: projectsEl });
     applyFilter();
   });
