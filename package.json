@@ -12,6 +12,7 @@
   "dependencies": {
     "@mojs/core": "^1.7.1",
     "animejs": "^3.2.2",
+    "embla-carousel": "^8.6.0",
     "gsap": "^3.12.7",
     "lottie-web": "^5.12.2",
     "three": "^0.172.0",

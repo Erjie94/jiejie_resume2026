@@ -1,6 +1,7 @@
 import gsap from 'gsap';
 import { qs, assetUrl, resolveMediaItemsAsync, isVideoUrl } from './utils.js';
 import { initLightbox } from './lightbox.js';
+import { initProjectCarousel } from './project-carousel.js';
 
 function setText(selector, value) {
   const el = qs(selector);
@@ -463,6 +464,7 @@ function renderProjects(projects = []) {
   const projectsEl = qs('[data-field="projects"]');
   const filtersEl = qs('[data-field="project-filters"]');
   const carousel = qs('[data-project-carousel]');
+  const viewport = qs('[data-project-viewport]');
   const prevBtn = qs('[data-project-prev]');
   const nextBtn = qs('[data-project-next]');
   if (!projectsEl) return Promise.resolve();
@@ -470,51 +472,9 @@ function renderProjects(projects = []) {
   const allTags = collectProjectTags(projects);
   /** @type {Set<string>} */
   const activeTags = new Set();
-
-  function visibleItems() {
-    return [...projectsEl.querySelectorAll('.project-item')].filter(
-      (item) => !item.hidden && !item.classList.contains('is-filtered-out'),
-    );
-  }
-
-  function syncActiveItem() {
-    const items = visibleItems();
-    const page = projectsEl.clientWidth || 1;
-    const index = Math.round(projectsEl.scrollLeft / page);
-    items.forEach((item, i) => item.classList.toggle('is-active', i === index));
-    syncCarouselNav();
-  }
-
-  function syncCarouselNav() {
-    const items = visibleItems();
-    const atStart = projectsEl.scrollLeft <= 4;
-    const atEnd =
-      projectsEl.scrollLeft + projectsEl.clientWidth >= projectsEl.scrollWidth - 4;
-    const alone = items.length <= 1;
-
-    if (prevBtn) prevBtn.disabled = alone || atStart;
-    if (nextBtn) nextBtn.disabled = alone || atEnd;
-    if (carousel) carousel.classList.toggle('is-single', alone);
-  }
-
-  function markSwiped() {
-    carousel?.classList.add('has-swiped');
-  }
-
-  function goBy(dir) {
-    markSwiped();
-    if (typeof projectsEl.__goPage === 'function') {
-      projectsEl.__goPage(dir).then(syncActiveItem);
-      return;
-    }
-    const items = visibleItems();
-    if (!items.length) return;
-    const page = projectsEl.clientWidth || 1;
-    const index = Math.round(projectsEl.scrollLeft / page);
-    const next = Math.max(0, Math.min(items.length - 1, index + dir));
-    projectsEl.scrollTo({ left: next * page, behavior: 'smooth' });
-    window.setTimeout(syncActiveItem, 360);
-  }
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  /** @type {ReturnType<typeof initProjectCarousel> | null} */
+  let projectCarousel = null;
 
   function projectItemHtml(p, index, media) {
     const mediaHtml = media
@@ -565,8 +525,8 @@ function renderProjects(projects = []) {
       });
     }
 
-    projectsEl.scrollLeft = 0;
-    syncActiveItem();
+    projectCarousel?.refresh();
+    projectCarousel?.scrollToStart();
     window.dispatchEvent(new CustomEvent('panels:contentchange'));
   }
 
@@ -608,16 +568,14 @@ function renderProjects(projects = []) {
   prevBtn?.addEventListener('click', (e) => {
     e.preventDefault();
     e.stopPropagation();
-    goBy(-1);
+    projectCarousel?.scrollPrev();
   });
 
   nextBtn?.addEventListener('click', (e) => {
     e.preventDefault();
     e.stopPropagation();
-    goBy(1);
+    projectCarousel?.scrollNext();
   });
-
-  projectsEl.addEventListener('scroll', () => syncActiveItem(), { passive: true });
 
   return Promise.all(
     projects.map((p) => resolveMediaItemsAsync(p.image).then((items) => items.slice(0, 3))),
@@ -625,13 +583,16 @@ function renderProjects(projects = []) {
     projectsEl.innerHTML = projects
       .map((p, i) => projectItemHtml(p, i, resolvedMedia[i]))
       .join('');
-    initHorizontalScroll(projectsEl, {
-      pageSnap: true,
-      onPageChange: () => {
-        markSwiped();
-        syncActiveItem();
-      },
+
+    projectCarousel = initProjectCarousel({
+      viewport: viewport || projectsEl.parentElement,
+      container: projectsEl,
+      prevBtn,
+      nextBtn,
+      carouselRoot: carousel,
+      reducedMotion: reduceMotion,
     });
+
     initLightbox({ root: projectsEl });
     applyFilter();
   });

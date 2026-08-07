@@ -838,6 +838,12 @@ body.is-panels .section {
   min-width: 0;
 }
 
+.project-carousel__viewport {
+  overflow: hidden;
+  width: 100%;
+  min-width: 0;
+}
+
 .project-carousel__nav {
   position: absolute;
   top: 50%;
@@ -894,6 +900,7 @@ body.is-panels .section {
   display: none;
 }
 
+/* Embla container：以 transform 換頁，避免自寫 scrollLeft 卡頓 */
 .project-list {
   display: flex;
   flex-wrap: nowrap;
@@ -904,50 +911,25 @@ body.is-panels .section {
   margin: 0;
   width: 100%;
   max-width: 100%;
-  overflow-x: auto;
-  overflow-y: hidden;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-  scroll-snap-type: x mandatory;
+  touch-action: pan-y pinch-zoom;
   cursor: grab;
-  touch-action: pan-y;
   user-select: none;
   position: relative;
   z-index: 0;
-}
-
-.project-list::-webkit-scrollbar {
-  display: none;
-  width: 0;
-  height: 0;
+  backface-visibility: hidden;
 }
 
 .project-list.is-grabbing {
   cursor: grabbing;
-  touch-action: none;
-}
-
-.project-list.is-paged {
-  /* 換頁改由 JS 動畫處理，避免 CSS snap 搶先對齊而沒有轉場 */
-  scroll-snap-type: none;
-  /* 預設允許上下滑（翻頁）；橫滑由 JS 軸向鎖定接手 */
-  touch-action: pan-y;
-}
-
-.project-list.is-animating {
-  pointer-events: none;
 }
 
 .project-item {
   flex: 0 0 100%;
   width: 100%;
   max-width: 100%;
-  min-width: 100%;
+  min-width: 0;
   padding: var(--space-2) 2.75rem;
   border: 0;
-  scroll-snap-align: start;
-  scroll-snap-stop: always;
   box-sizing: border-box;
   opacity: 0.42;
   transform: scale(0.985);
