@@ -1,3 +1,4 @@
+import gsap from 'gsap';
 import { qs, assetUrl, resolveMediaItemsAsync, isVideoUrl } from './utils.js';
 import { initLightbox } from './lightbox.js';
 
@@ -96,7 +97,7 @@ function renderExperience(experience = []) {
 
   root.innerHTML = `
     <ol class="timeline-h__rail" data-exp-rail>${nodes}</ol>
-    <div class="timeline-h__detail" id="exp-detail" data-exp-detail tabindex="-1">
+    <div class="timeline-h__detail" id="exp-detail" data-exp-detail data-panel-scroll tabindex="-1">
       <div class="timeline-h__stage" data-exp-stage></div>
     </div>
   `;
@@ -179,7 +180,6 @@ function renderExperience(experience = []) {
     if (index === currentIndex) return;
     if (animating && !instant) return;
 
-    const direction = instant || currentIndex < 0 ? 0 : Math.sign(index - currentIndex);
     setActiveButton(index);
 
     const incoming = document.createElement('div');
@@ -189,10 +189,13 @@ function renderExperience(experience = []) {
     const outgoing = stageEl.querySelector('.timeline-h__slide');
 
     // 首次載入或減少動態：直接替換
-    if (direction === 0 || !outgoing || reduceMotion || instant) {
+    if (!outgoing || reduceMotion || instant || currentIndex < 0) {
+      gsap.killTweensOf([stageEl, outgoing, incoming].filter(Boolean));
       stageEl.replaceChildren(incoming);
+      gsap.set(incoming, { clearProps: 'opacity,y' });
       currentIndex = index;
       detailEl.classList.add('is-open');
+      detailEl.scrollTop = 0;
       window.dispatchEvent(new CustomEvent('panels:contentchange'));
       return;
     }
@@ -202,43 +205,30 @@ function renderExperience(experience = []) {
     stageEl.style.height = `${fromH}px`;
     outgoing.classList.add('is-outgoing');
     incoming.classList.add('is-incoming');
+    gsap.set(incoming, { opacity: 0, y: 12 });
     stageEl.appendChild(incoming);
 
     const toH = incoming.offsetHeight;
-    const duration = 800;
-    const easing = 'cubic-bezier(0.22, 1, 0.36, 1)';
-    // direction > 0：往時間線右側 → 舊內容向左退出，新內容自右推入
-    const outX = `${-direction * 100}%`;
-    const inFromX = `${direction * 100}%`;
 
-    try {
-      await Promise.all([
-        outgoing.animate(
-          [{ transform: 'translateX(0)' }, { transform: `translateX(${outX})` }],
-          { duration, easing, fill: 'forwards' },
-        ).finished,
-        incoming.animate(
-          [{ transform: `translateX(${inFromX})` }, { transform: 'translateX(0)' }],
-          { duration, easing, fill: 'forwards' },
-        ).finished,
-        stageEl.animate(
-          [{ height: `${fromH}px` }, { height: `${toH}px` }],
-          { duration, easing, fill: 'forwards' },
-        ).finished,
-      ]);
-    } catch {
-      /* animation cancelled */
-    }
+    await new Promise((resolve) => {
+      gsap
+        .timeline({
+          defaults: { ease: 'power2.inOut' },
+          onComplete: resolve,
+        })
+        .to(outgoing, { opacity: 0, y: -10, duration: 0.32 }, 0)
+        .to(stageEl, { height: toH, duration: 0.45 }, 0)
+        .to(incoming, { opacity: 1, y: 0, duration: 0.4 }, 0.12);
+    });
 
     outgoing.remove();
-    incoming.getAnimations().forEach((a) => a.cancel());
-    stageEl.getAnimations().forEach((a) => a.cancel());
     incoming.classList.remove('is-incoming');
-    incoming.style.transform = '';
+    gsap.set(incoming, { clearProps: 'opacity,y' });
     stageEl.style.height = '';
     currentIndex = index;
     animating = false;
     detailEl.classList.add('is-open');
+    detailEl.scrollTop = 0;
     window.dispatchEvent(new CustomEvent('panels:contentchange'));
   }
 

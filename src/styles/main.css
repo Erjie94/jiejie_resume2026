@@ -3,7 +3,7 @@ body {
   color: var(--color-ink);
   background:
     radial-gradient(110% 70% at 8% -5%, color-mix(in srgb, var(--brand-sun) 55%, transparent), transparent 55%),
-    radial-gradient(90% 55% at 92% 8%, color-mix(in srgb, var(--brand-lime) 50%, transparent), transparent 50%),
+    radial-gradient(90% 55% at 92% 8%, color-mix(in srgb, var(--brand-sun) 50%, transparent), transparent 50%),
     radial-gradient(80% 50% at 70% 100%, color-mix(in srgb, var(--brand-coral) 28%, transparent), transparent 55%),
     linear-gradient(165deg, var(--color-bg-0), var(--color-bg-1) 42%, var(--color-bg-2));
   background-attachment: fixed;
@@ -99,6 +99,68 @@ body.is-panels #about.panel {
   align-items: stretch;
   padding-top: var(--space-3);
   padding-bottom: var(--space-5);
+}
+
+/* 經歷：整頁高度鎖在視窗內，詳情區內捲，避免撐破翻頁 */
+body.is-panels #experience.panel {
+  padding-bottom: var(--space-3);
+  overflow: hidden;
+  min-height: 0;
+}
+
+body.is-panels #experience .section__title {
+  flex-shrink: 0;
+  margin-bottom: var(--space-2);
+}
+
+body.is-panels #experience .timeline-h {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+  gap: var(--space-2);
+}
+
+body.is-panels #experience .timeline-h__rail {
+  flex-shrink: 0;
+}
+
+body.is-panels #experience .timeline-h__detail {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  padding-bottom: var(--space-2);
+}
+
+body.is-panels #experience .timeline-h__detail::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+body.is-panels #experience .timeline-h__shot {
+  max-height: min(14rem, 32vh);
+}
+
+body.is-panels #experience .timeline-h__media[data-count='2'] .timeline-h__shot {
+  max-height: min(10rem, 26vh);
+}
+
+body.is-panels #experience .timeline-h__media[data-count='3'] .timeline-h__shot {
+  max-height: min(7.5rem, 20vh);
+}
+
+body.is-panels #experience .timeline-h__media[data-cols='2'] .timeline-h__shot {
+  max-height: min(8.5rem, 22vh);
+}
+
+body.is-panels #experience .timeline-h__media[data-count='5'] .timeline-h__shot,
+body.is-panels #experience .timeline-h__media[data-count='6'] .timeline-h__shot {
+  max-height: min(7rem, 18vh);
 }
 
 /* 聯絡：主內容垂直置中，footer 貼底 */
@@ -529,7 +591,7 @@ body.is-panels .section {
     115deg,
     var(--brand-coral) 0%,
     var(--brand-sun) 38%,
-    var(--brand-lime) 68%,
+    var(--brand-sun) 68%,
     var(--text-grad-end-sky) 100%
   );
   -webkit-background-clip: text;
@@ -606,12 +668,12 @@ body.is-panels .section {
 .btn--ghost {
   border-color: color-mix(in srgb, var(--color-ink) 22%, transparent);
   color: var(--color-ink);
-  background: color-mix(in srgb, var(--brand-lime) 35%, transparent);
+  background: color-mix(in srgb, var(--brand-sun) 35%, transparent);
 }
 
 .btn--ghost:hover,
 .btn--ghost:focus-visible {
-  background: var(--brand-lime);
+  background: var(--brand-sun);
 }
 
 .section__title {
@@ -628,7 +690,7 @@ body.is-panels .section {
   height: 0.28rem;
   margin-top: 0.55rem;
   border-radius: 999px;
-  background: linear-gradient(90deg, var(--brand-lime), var(--brand-sun), var(--brand-coral));
+  background: linear-gradient(90deg, var(--brand-sun), var(--brand-sun), var(--brand-coral));
 }
 
 
@@ -688,7 +750,7 @@ body.is-panels .section {
   background:
     linear-gradient(
       160deg,
-      color-mix(in srgb, var(--brand-lime) 32%, #fff) 0%,
+      color-mix(in srgb, var(--brand-sun) 32%, #fff) 0%,
       color-mix(in srgb, var(--brand-sky) 30%, #fff) 100%
     );
 }
@@ -808,7 +870,7 @@ body.is-panels .section {
 }
 
 .tag-list > li:nth-child(4n + 3) .tag-chip {
-  background: color-mix(in srgb, var(--brand-lime) 42%, #fff);
+  background: color-mix(in srgb, var(--brand-sun) 42%, #fff);
 }
 
 .tag-list > li:nth-child(4n + 4) .tag-chip {
@@ -1360,7 +1422,7 @@ video.project-item__media {
 .timeline-h__slide {
   width: 100%;
   min-width: 0;
-  will-change: transform;
+  will-change: opacity, transform;
 }
 
 .timeline-h__slide.is-outgoing,
@@ -1642,12 +1704,22 @@ body.is-lightbox-open {
   body.is-panels #experience.panel {
     justify-content: flex-start;
     padding-top: var(--space-2);
-    padding-bottom: var(--space-4);
+    padding-bottom: var(--space-2);
+    overflow: hidden;
   }
 
   body.is-panels #experience .section__title {
     margin-bottom: var(--space-2);
     flex-shrink: 0;
+  }
+
+  body.is-panels #experience .timeline-h__shot {
+    max-height: min(11rem, 28vh);
+  }
+
+  body.is-panels #experience .timeline-h__media[data-cols='2'] .timeline-h__shot,
+  body.is-panels #experience .timeline-h__media[data-count='2'] .timeline-h__shot {
+    max-height: min(8rem, 22vh);
   }
 
   .timeline-h__item {

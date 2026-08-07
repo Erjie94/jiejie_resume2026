@@ -15,7 +15,8 @@ export function initMo({ reducedMotion = false } = {}) {
     children: {
       shape: 'circle',
       radius: 5,
-      fill: ['#B8E1FF', '#F2DD6E', '#CFF27E', '#FF785A'],
+      // 原色：['#B8E1FF', '#F2DD6E', '#8EDFC5', '#FF785A']（lime 已併入 sun）
+      fill: ['#B8E1FF', '#F2DD6E', '#FF785A'],
       duration: 700,
       easing: 'quad.out',
     },

@@ -1,8 +1,13 @@
 :root {
-  /* Brand palette (canonical) */
+  /* Brand palette (canonical)
+   * 原色保留：
+   * --brand-sky: #b8e1ff;
+   * --brand-sun: #f2dd6e;
+   * --brand-lime: #8edfc5;
+   * --brand-coral: #ff785a;
+   */
   --brand-sky: #b8e1ff;
   --brand-sun: #f2dd6e;
-  --brand-lime: #cff27e;
   --brand-coral: #ff785a;
 
   /* Surfaces — sky-led light atmosphere */
@@ -14,9 +19,9 @@
   --color-ink: #1c2a38;
   --color-muted: #5a6d7d;
 
-  /* Semantic accents mapped from brand */
+  /* Semantic accents mapped from brand（原 lime 用途併入 sun） */
   --color-accent: var(--brand-coral);
-  --color-accent-soft: var(--brand-lime);
+  --color-accent-soft: var(--brand-sun);
   --color-accent-warm: var(--brand-sun);
   --color-accent-cool: var(--brand-sky);
 
@@ -27,8 +32,8 @@
   --text-grad-end-sky: color-mix(in srgb, var(--brand-sky) 30%, var(--color-ink));
   --text-grad-end-warm: color-mix(in srgb, var(--brand-sun) 48%, var(--color-ink));
 
-  /* Side nav text option pair（預設與 hover 互換） */
-  --nav-fg: var(--brand-lime);
+  /* Side nav text option pair（預設與 hover 互換；原 lime → sun） */
+  --nav-fg: var(--brand-sun);
   --nav-bg: var(--brand-coral);
 
   /* 字型定義在 /fonts/cubic11.css */

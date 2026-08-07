@@ -175,6 +175,9 @@ export function initGsap({ reducedMotion = false, initialHash = '' } = {}) {
     resetWindowScroll();
     // 進入頁從頂部開始；離開頁的捲動位置先鎖住，等轉場結束再清
     panels[current].scrollTop = 0;
+    panels[current].querySelectorAll('[data-panel-scroll]').forEach((el) => {
+      el.scrollTop = 0;
+    });
 
     const id = panels[current].id;
 
@@ -186,7 +189,12 @@ export function initGsap({ reducedMotion = false, initialHash = '' } = {}) {
     };
 
     const clearPrevScroll = () => {
-      if (prev !== current && panels[prev]) panels[prev].scrollTop = 0;
+      if (prev !== current && panels[prev]) {
+        panels[prev].scrollTop = 0;
+        panels[prev].querySelectorAll('[data-panel-scroll]').forEach((el) => {
+          el.scrollTop = 0;
+        });
+      }
     };
 
     if (instant) {
@@ -230,30 +238,39 @@ export function initGsap({ reducedMotion = false, initialHash = '' } = {}) {
     return current;
   }
 
-  function getPanelScrollState(panel) {
-    const canInner = panel.scrollHeight > panel.clientHeight + EDGE_EPS;
-    const atTop = panel.scrollTop <= EDGE_EPS;
-    const atBottom = panel.scrollTop + panel.clientHeight >= panel.scrollHeight - EDGE_EPS;
-    return { canInner, atTop, atBottom };
+  function getScrollHost(panel, fromEl) {
+    if (fromEl?.closest) {
+      const hit = fromEl.closest('[data-panel-scroll]');
+      if (hit && panel.contains(hit)) return hit;
+    }
+    return panel.querySelector('[data-panel-scroll]') || panel;
   }
 
-  function canPageUp() {
-    return getPanelScrollState(panels[current]).atTop;
+  function getPanelScrollState(panel, fromEl) {
+    const host = getScrollHost(panel, fromEl);
+    const canInner = host.scrollHeight > host.clientHeight + EDGE_EPS;
+    const atTop = host.scrollTop <= EDGE_EPS;
+    const atBottom = host.scrollTop + host.clientHeight >= host.scrollHeight - EDGE_EPS;
+    return { canInner, atTop, atBottom, host };
   }
 
-  function canPageDown() {
-    const { canInner, atBottom } = getPanelScrollState(panels[current]);
+  function canPageUp(fromEl) {
+    return getPanelScrollState(panels[current], fromEl).atTop;
+  }
+
+  function canPageDown(fromEl) {
+    const { canInner, atBottom } = getPanelScrollState(panels[current], fromEl);
     if (!canInner) return true;
     return atBottom;
   }
 
-  function canScrollPanelUp(panel) {
-    const { canInner, atTop } = getPanelScrollState(panel);
+  function canScrollPanelUp(panel, fromEl) {
+    const { canInner, atTop } = getPanelScrollState(panel, fromEl);
     return canInner && !atTop;
   }
 
-  function canScrollPanelDown(panel) {
-    const { canInner, atBottom } = getPanelScrollState(panel);
+  function canScrollPanelDown(panel, fromEl) {
+    const { canInner, atBottom } = getPanelScrollState(panel, fromEl);
     return canInner && !atBottom;
   }
 
@@ -292,6 +309,15 @@ export function initGsap({ reducedMotion = false, initialHash = '' } = {}) {
 
   function syncPanelScrollable() {
     panels.forEach((panel) => {
+      const inner = panel.querySelector('[data-panel-scroll]');
+      if (inner) {
+        panel.classList.remove('is-scrollable');
+        panel.style.overflowY = 'hidden';
+        const needsInner = inner.scrollHeight > inner.clientHeight + EDGE_EPS;
+        inner.classList.toggle('is-scrollable', needsInner);
+        return;
+      }
+
       const needsScroll = panel.scrollHeight > panel.clientHeight + EDGE_EPS;
       panel.classList.toggle('is-scrollable', needsScroll);
       panel.style.overflowY = needsScroll ? 'auto' : 'hidden';
@@ -352,11 +378,11 @@ export function initGsap({ reducedMotion = false, initialHash = '' } = {}) {
       if (Math.abs(delta) < 1) return;
 
       if (delta > 0) {
-        if (canScrollPanelDown(panel)) {
+        if (canScrollPanelDown(panel, e.target)) {
           resetOverscroll();
           return;
         }
-        if (!canPageDown()) {
+        if (!canPageDown(e.target)) {
           resetOverscroll();
           return;
         }
@@ -365,11 +391,11 @@ export function initGsap({ reducedMotion = false, initialHash = '' } = {}) {
         return;
       }
 
-      if (canScrollPanelUp(panel)) {
+      if (canScrollPanelUp(panel, e.target)) {
         resetOverscroll();
         return;
       }
-      if (!canPageUp()) {
+      if (!canPageUp(e.target)) {
         resetOverscroll();
         return;
       }
@@ -386,6 +412,7 @@ export function initGsap({ reducedMotion = false, initialHash = '' } = {}) {
   let touchActive = false;
   let touchEdgeOverscroll = 0;
   let touchWasAtEdge = false;
+  let touchTarget = null;
 
   pageEl.addEventListener(
     'touchstart',
@@ -396,6 +423,7 @@ export function initGsap({ reducedMotion = false, initialHash = '' } = {}) {
       touchStartX = e.touches[0].clientX;
       touchEdgeOverscroll = 0;
       touchWasAtEdge = false;
+      touchTarget = e.target;
     },
     { passive: true },
   );
@@ -414,25 +442,25 @@ export function initGsap({ reducedMotion = false, initialHash = '' } = {}) {
       const scrollingDown = dy > 0;
       const scrollingUp = dy < 0;
 
-      if (scrollingDown && canScrollPanelDown(panel)) {
+      if (scrollingDown && canScrollPanelDown(panel, touchTarget)) {
         touchEdgeOverscroll = 0;
         touchWasAtEdge = false;
         return;
       }
-      if (scrollingUp && canScrollPanelUp(panel)) {
+      if (scrollingUp && canScrollPanelUp(panel, touchTarget)) {
         touchEdgeOverscroll = 0;
         touchWasAtEdge = false;
         return;
       }
 
-      if (scrollingDown && canPageDown()) {
+      if (scrollingDown && canPageDown(touchTarget)) {
         touchWasAtEdge = true;
         touchEdgeOverscroll = Math.max(touchEdgeOverscroll, dy);
         if (touchEdgeOverscroll > 12) e.preventDefault();
         return;
       }
 
-      if (scrollingUp && canPageUp()) {
+      if (scrollingUp && canPageUp(touchTarget)) {
         touchWasAtEdge = true;
         touchEdgeOverscroll = Math.min(touchEdgeOverscroll, dy);
         if (touchEdgeOverscroll < -12) e.preventDefault();
@@ -448,6 +476,7 @@ export function initGsap({ reducedMotion = false, initialHash = '' } = {}) {
         touchActive = false;
         touchEdgeOverscroll = 0;
         touchWasAtEdge = false;
+        touchTarget = null;
         return;
       }
       touchActive = false;
@@ -460,19 +489,24 @@ export function initGsap({ reducedMotion = false, initialHash = '' } = {}) {
       if (dx > Math.abs(dy)) {
         touchEdgeOverscroll = 0;
         touchWasAtEdge = false;
+        touchTarget = null;
         return;
       }
 
-      if (!touchWasAtEdge) return;
+      if (!touchWasAtEdge) {
+        touchTarget = null;
+        return;
+      }
 
-      if (dy > 0 && canPageDown() && touchEdgeOverscroll >= TOUCH_OVERSCROLL_THRESHOLD) {
+      if (dy > 0 && canPageDown(touchTarget) && touchEdgeOverscroll >= TOUCH_OVERSCROLL_THRESHOLD) {
         goTo(current + 1);
-      } else if (dy < 0 && canPageUp() && touchEdgeOverscroll <= -TOUCH_OVERSCROLL_THRESHOLD) {
+      } else if (dy < 0 && canPageUp(touchTarget) && touchEdgeOverscroll <= -TOUCH_OVERSCROLL_THRESHOLD) {
         goTo(current - 1);
       }
 
       touchEdgeOverscroll = 0;
       touchWasAtEdge = false;
+      touchTarget = null;
     },
     { passive: true },
   );

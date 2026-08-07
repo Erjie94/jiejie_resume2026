@@ -90,9 +90,10 @@ jiejie_web/
 | 色碼 | Token | 用途 |
 |------|-------|------|
 | `#B8E1FF` | `--brand-sky` | 氛圍底、冷色面 |
-| `#F2DD6E` | `--brand-sun` | 高光、時間標記 |
-| `#CFF27E` | `--brand-lime` | 次要 CTA、區塊點綴 |
+| `#F2DD6E` | `--brand-sun` | 高光、時間標記、次要強調 |
 | `#FF785A` | `--brand-coral` | 主 CTA、強調 |
+
+原色（註解於 `variables.css`）：`#B8E1FF` / `#F2DD6E` / `#8EDFC5` / `#FF785A`（`--brand-lime` 已移除，用途併入 sun）
 
 定義於 `src/styles/variables.css`。
 
