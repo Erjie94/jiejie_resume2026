@@ -101,68 +101,6 @@ body.is-panels #about.panel {
   padding-bottom: var(--space-5);
 }
 
-/* 經歷：整頁高度鎖在視窗內，詳情區內捲，避免撐破翻頁 */
-body.is-panels #experience.panel {
-  padding-bottom: var(--space-3);
-  overflow: hidden;
-  min-height: 0;
-}
-
-body.is-panels #experience .section__title {
-  flex-shrink: 0;
-  margin-bottom: var(--space-2);
-}
-
-body.is-panels #experience .timeline-h {
-  flex: 1 1 auto;
-  min-height: 0;
-  overflow: hidden;
-  gap: var(--space-2);
-}
-
-body.is-panels #experience .timeline-h__rail {
-  flex-shrink: 0;
-}
-
-body.is-panels #experience .timeline-h__detail {
-  flex: 1 1 auto;
-  min-height: 0;
-  overflow-x: hidden;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-  padding-bottom: var(--space-2);
-}
-
-body.is-panels #experience .timeline-h__detail::-webkit-scrollbar {
-  display: none;
-  width: 0;
-  height: 0;
-}
-
-body.is-panels #experience .timeline-h__shot {
-  max-height: min(14rem, 32vh);
-}
-
-body.is-panels #experience .timeline-h__media[data-count='2'] .timeline-h__shot {
-  max-height: min(10rem, 26vh);
-}
-
-body.is-panels #experience .timeline-h__media[data-count='3'] .timeline-h__shot {
-  max-height: min(7.5rem, 20vh);
-}
-
-body.is-panels #experience .timeline-h__media[data-cols='2'] .timeline-h__shot {
-  max-height: min(8.5rem, 22vh);
-}
-
-body.is-panels #experience .timeline-h__media[data-count='5'] .timeline-h__shot,
-body.is-panels #experience .timeline-h__media[data-count='6'] .timeline-h__shot {
-  max-height: min(7rem, 18vh);
-}
-
 /* 聯絡：主內容垂直置中，footer 貼底 */
 body.is-panels #contact.panel {
   justify-content: center;
@@ -1517,11 +1455,6 @@ video.project-item__media {
   align-content: start;
 }
 
-/* 4 張以上：兩欄（4→2×2、6→2×3） */
-.timeline-h__media[data-cols='2'] {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
 .timeline-h__shot-btn {
   display: block;
   width: 100%;
@@ -1532,6 +1465,8 @@ video.project-item__media {
   cursor: zoom-in;
   border-radius: var(--photo-radius);
   min-width: 0;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .timeline-h__shot-btn:focus-visible {
@@ -1539,6 +1474,7 @@ video.project-item__media {
   outline-offset: 2px;
 }
 
+/* 1 張：維持原比例 */
 .timeline-h__shot {
   display: block;
   width: 100%;
@@ -1556,29 +1492,77 @@ video.timeline-h__shot {
   cursor: default;
 }
 
-/* 張數越多，單張越高上限越低，避免撐破區塊 */
+/* 2 張：等高正方形並排 */
+.timeline-h__media[data-count='2'] {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  max-width: min(100%, 20rem);
+}
+
+.timeline-h__media[data-count='2'] .timeline-h__shot-btn,
+.timeline-h__media[data-count='2'] > video.timeline-h__shot {
+  aspect-ratio: 1 / 1;
+}
+
 .timeline-h__media[data-count='2'] .timeline-h__shot {
-  max-height: 11rem;
+  aspect-ratio: 1 / 1;
+  max-height: none;
+  height: 100%;
+}
+
+/* 3 張：較小正方形橫排 */
+.timeline-h__media[data-count='3'] {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  max-width: min(100%, 24rem);
+}
+
+.timeline-h__media[data-count='3'] .timeline-h__shot-btn,
+.timeline-h__media[data-count='3'] > video.timeline-h__shot {
+  aspect-ratio: 1 / 1;
 }
 
 .timeline-h__media[data-count='3'] .timeline-h__shot {
-  max-height: 8rem;
+  aspect-ratio: 1 / 1;
+  max-height: none;
+  height: 100%;
 }
 
-.timeline-h__media[data-cols='2'] .timeline-h__shot {
-  max-height: 9rem;
+/* 4 張：高度優先的四宮格（2×2） */
+.timeline-h__media[data-count='4'] {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+  height: min(42vh, 22rem);
+  max-height: min(42vh, 22rem);
+  align-content: stretch;
 }
 
+/* 5／6 張：高度優先的六宮格（3×2） */
+.timeline-h__media[data-count='5'],
+.timeline-h__media[data-count='6'] {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+  height: min(42vh, 22rem);
+  max-height: min(42vh, 22rem);
+  align-content: stretch;
+}
+
+.timeline-h__media[data-count='4'] .timeline-h__shot-btn,
+.timeline-h__media[data-count='5'] .timeline-h__shot-btn,
+.timeline-h__media[data-count='6'] .timeline-h__shot-btn,
+.timeline-h__media[data-count='4'] > video.timeline-h__shot,
+.timeline-h__media[data-count='5'] > video.timeline-h__shot,
+.timeline-h__media[data-count='6'] > video.timeline-h__shot {
+  height: 100%;
+  aspect-ratio: auto;
+}
+
+.timeline-h__media[data-count='4'] .timeline-h__shot,
 .timeline-h__media[data-count='5'] .timeline-h__shot,
 .timeline-h__media[data-count='6'] .timeline-h__shot {
-  max-height: 7.5rem;
-}
-
-.timeline-h__media[data-count='7'] .timeline-h__shot,
-.timeline-h__media[data-count='8'] .timeline-h__shot,
-.timeline-h__media[data-count='9'] .timeline-h__shot,
-.timeline-h__media[data-count='10'] .timeline-h__shot {
-  max-height: 6.5rem;
+  width: 100%;
+  height: 100%;
+  aspect-ratio: auto;
+  max-height: none;
+  object-fit: cover;
 }
 
 /* ========== 圖片放大預覽 ========== */
@@ -1704,22 +1688,12 @@ body.is-lightbox-open {
   body.is-panels #experience.panel {
     justify-content: flex-start;
     padding-top: var(--space-2);
-    padding-bottom: var(--space-2);
-    overflow: hidden;
+    padding-bottom: var(--space-4);
   }
 
   body.is-panels #experience .section__title {
     margin-bottom: var(--space-2);
     flex-shrink: 0;
-  }
-
-  body.is-panels #experience .timeline-h__shot {
-    max-height: min(11rem, 28vh);
-  }
-
-  body.is-panels #experience .timeline-h__media[data-cols='2'] .timeline-h__shot,
-  body.is-panels #experience .timeline-h__media[data-count='2'] .timeline-h__shot {
-    max-height: min(8rem, 22vh);
   }
 
   .timeline-h__item {
@@ -1742,6 +1716,21 @@ body.is-lightbox-open {
   .timeline-h__detail-layout.has-media .timeline-h__media {
     flex: none;
     width: 100%;
+  }
+
+  .timeline-h__media[data-count='2'] {
+    max-width: min(100%, 18rem);
+  }
+
+  .timeline-h__media[data-count='3'] {
+    max-width: min(100%, 22rem);
+  }
+
+  .timeline-h__media[data-count='4'],
+  .timeline-h__media[data-count='5'],
+  .timeline-h__media[data-count='6'] {
+    height: min(34vh, 16rem);
+    max-height: min(34vh, 16rem);
   }
 
   .cert-list {

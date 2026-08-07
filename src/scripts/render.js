@@ -97,7 +97,7 @@ function renderExperience(experience = []) {
 
   root.innerHTML = `
     <ol class="timeline-h__rail" data-exp-rail>${nodes}</ol>
-    <div class="timeline-h__detail" id="exp-detail" data-exp-detail data-panel-scroll tabindex="-1">
+    <div class="timeline-h__detail" id="exp-detail" data-exp-detail tabindex="-1">
       <div class="timeline-h__stage" data-exp-stage></div>
     </div>
   `;
@@ -121,13 +121,11 @@ function renderExperience(experience = []) {
   }
 
   async function buildDetailMarkup(item) {
-    const media = await resolveMediaItemsAsync(item.picture);
+    const media = (await resolveMediaItemsAsync(item.picture)).slice(0, 6);
     const count = media.length;
-    /* 4 張以上改為兩欄（4→2×2、6→2×3），避免直向堆疊超出 */
-    const cols = count >= 4 ? 2 : 1;
     const alt = `${item.role} 相關照片`;
     const mediaHtml = count
-      ? `<div class="timeline-h__media" data-count="${count}" data-cols="${cols}">${media
+      ? `<div class="timeline-h__media" data-count="${count}">${media
           .map((m) => mediaItemHtml(m.url, alt))
           .join('')}</div>`
       : '';
@@ -195,7 +193,6 @@ function renderExperience(experience = []) {
       gsap.set(incoming, { clearProps: 'opacity,y' });
       currentIndex = index;
       detailEl.classList.add('is-open');
-      detailEl.scrollTop = 0;
       window.dispatchEvent(new CustomEvent('panels:contentchange'));
       return;
     }
@@ -228,7 +225,6 @@ function renderExperience(experience = []) {
     currentIndex = index;
     animating = false;
     detailEl.classList.add('is-open');
-    detailEl.scrollTop = 0;
     window.dispatchEvent(new CustomEvent('panels:contentchange'));
   }
 
