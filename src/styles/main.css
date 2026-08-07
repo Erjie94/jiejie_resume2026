@@ -34,6 +34,8 @@ body.is-panels .page {
   height: 100vh;
   height: 100dvh;
   min-height: 0;
+  max-height: 100vh;
+  max-height: 100dvh;
   overflow: hidden;
   /* clip 禁止程式化捲動（scrollIntoView 仍可能捲動 overflow:hidden） */
   overflow: clip;
@@ -42,6 +44,7 @@ body.is-panels .page {
 body.is-panels .panels-track {
   position: relative;
   width: 100%;
+  height: 100%;
   will-change: transform;
 }
 
@@ -63,8 +66,8 @@ body.is-panels:not(.is-panels-ready) .contact-body {
 }
 
 body.is-panels .panel {
-  height: 100vh;
-  height: 100dvh;
+  height: 100%;
+  max-height: 100%;
   width: 100%;
   box-sizing: border-box;
   overflow-x: hidden;
@@ -91,14 +94,85 @@ body.is-panels .panel.section--hero {
   min-height: 0;
 }
 
-/* 文字較多的區塊：改頂對齊，避免置中造成上下切版 */
+/* 文字較多的區塊：頂對齊，外框嚴格等於頁高 100% */
 body.is-panels #experience.panel,
 body.is-panels #projects.panel,
 body.is-panels #about.panel {
   justify-content: flex-start;
   align-items: stretch;
   padding-top: var(--space-3);
-  padding-bottom: var(--space-5);
+  padding-bottom: var(--space-3);
+  overflow-x: hidden;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+body.is-panels #experience.panel > .section__title,
+body.is-panels #projects.panel > .section__title,
+body.is-panels #about.panel > .section__title {
+  flex-shrink: 0;
+}
+
+body.is-panels #about.panel > .about__body,
+body.is-panels #about.panel > .about__subtitle,
+body.is-panels #about.panel > .cert-list {
+  flex-shrink: 0;
+}
+
+body.is-panels #projects.panel > .tag-list {
+  flex-shrink: 0;
+}
+
+body.is-panels #projects.panel > .project-carousel {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+body.is-panels #projects.panel .project-list {
+  flex: 1 1 auto;
+  min-height: 0;
+  height: auto;
+  padding-bottom: 0.35rem;
+}
+
+body.is-panels #projects.panel .project-item {
+  max-height: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+body.is-panels #projects.panel .project-item::-webkit-scrollbar {
+  display: none;
+}
+
+body.is-panels #projects.panel .project-carousel__pager {
+  flex-shrink: 0;
+}
+
+body.is-panels #experience.panel > .timeline-h {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+body.is-panels #experience.panel .timeline-h__rail {
+  flex-shrink: 0;
+}
+
+body.is-panels #experience.panel .timeline-h__detail {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  scrollbar-width: none;
+}
+
+body.is-panels #experience.panel .timeline-h__detail::-webkit-scrollbar {
+  display: none;
 }
 
 /* 聯絡：主內容垂直置中，footer 貼底 */
@@ -245,12 +319,15 @@ html.is-panels--native .panel {
   body.is-panels .page {
     height: calc(100vh - var(--header-h));
     height: calc(100dvh - var(--header-h));
+    max-height: calc(100vh - var(--header-h));
+    max-height: calc(100dvh - var(--header-h));
     margin-top: var(--header-h);
     padding-top: 0;
   }
 
   body.is-panels .panel {
     height: 100%;
+    max-height: 100%;
   }
 }
 
@@ -494,7 +571,9 @@ html.is-panels--native .panel {
 body.is-panels .section {
   padding-block: var(--space-3);
   max-height: none;
-  flex: 0 0 auto;
+  /* panel 本身即 section：在翻頁模式下吃滿父層高度 */
+  flex: 1 1 auto;
+  min-height: 0;
   /* 與作品區一致：拉滿可用寬度，左緣對齊 */
   width: calc(100% - 2 * var(--space-3));
   max-width: none;
@@ -1104,7 +1183,7 @@ video.project-item__media {
   }
 
   .project-item__media {
-    max-height: 12rem;
+    max-height: min(28vh, 10rem);
   }
 }
 
@@ -1449,12 +1528,12 @@ video.timeline-h__shot {
   height: 100%;
 }
 
-/* 4 張：高度優先的四宮格（2×2） */
+/* 4 張：高度優先的四宮格（2×2），限制在頁內剩餘空間 */
 .timeline-h__media[data-count='4'] {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   grid-template-rows: repeat(2, minmax(0, 1fr));
-  height: min(42vh, 22rem);
-  max-height: min(42vh, 22rem);
+  height: clamp(8rem, 34vh, 18rem);
+  max-height: min(34vh, 40%);
   align-content: stretch;
 }
 
@@ -1463,8 +1542,8 @@ video.timeline-h__shot {
 .timeline-h__media[data-count='6'] {
   grid-template-columns: repeat(3, minmax(0, 1fr));
   grid-template-rows: repeat(2, minmax(0, 1fr));
-  height: min(42vh, 22rem);
-  max-height: min(42vh, 22rem);
+  height: clamp(8rem, 34vh, 18rem);
+  max-height: min(34vh, 40%);
   align-content: stretch;
 }
 
@@ -1608,13 +1687,17 @@ body.is-lightbox-open {
 }
 
 @media (max-width: 900px) {
-  body.is-panels #experience.panel {
+  body.is-panels #experience.panel,
+  body.is-panels #projects.panel {
     justify-content: flex-start;
     padding-top: var(--space-2);
-    padding-bottom: var(--space-4);
+    padding-bottom: var(--space-2);
+    overflow-x: hidden;
+    overflow-y: auto;
   }
 
-  body.is-panels #experience .section__title {
+  body.is-panels #experience .section__title,
+  body.is-panels #projects .section__title {
     margin-bottom: var(--space-2);
     flex-shrink: 0;
   }
@@ -1652,8 +1735,9 @@ body.is-lightbox-open {
   .timeline-h__media[data-count='4'],
   .timeline-h__media[data-count='5'],
   .timeline-h__media[data-count='6'] {
-    height: min(34vh, 16rem);
-    max-height: min(34vh, 16rem);
+    height: clamp(6.5rem, 26vh, 13rem);
+    max-height: min(26vh, 36%);
+  }
   }
 
   .cert-list {

@@ -75,8 +75,20 @@ export function initGsap({ reducedMotion = false, initialHash = '' } = {}) {
   function measure() {
     const mobile = window.matchMedia('(max-width: 900px)').matches;
     const bar = document.querySelector('.mobile-header__bar');
-    const offset = mobile && bar ? bar.getBoundingClientRect().height : 0;
-    viewportH = Math.max(window.innerHeight - offset, 200);
+    const headerH = mobile && bar ? Math.round(bar.getBoundingClientRect().height) : 0;
+    const pageEl = document.querySelector('.page');
+
+    // 頁面可視高度為唯一真相：每一屏嚴格佔滿 100%（手機再扣頂欄）
+    viewportH = Math.max(Math.round(window.innerHeight - headerH), 200);
+
+    if (pageEl) {
+      pageEl.style.height = `${viewportH}px`;
+      pageEl.style.minHeight = `${viewportH}px`;
+      pageEl.style.maxHeight = `${viewportH}px`;
+      if (mobile && headerH) {
+        document.documentElement.style.setProperty('--header-h', `${headerH}px`);
+      }
+    }
 
     panels.forEach((panel) => {
       panel.style.height = `${viewportH}px`;
