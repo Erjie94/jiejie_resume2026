@@ -249,24 +249,63 @@ export function initGsap({ reducedMotion = false, initialHash = '' } = {}) {
     return { canInner, atTop, atBottom };
   }
 
-  function canPageUp() {
-    return getPanelScrollState(panels[current]).atTop;
+  /** 從事件目標往上找可垂直捲動的容器（含作品卡、經歷詳情、panel 本身） */
+  function collectVerticalScrollers(fromEl, panel) {
+    const list = [];
+    if (!panel) return list;
+
+    let el =
+      fromEl instanceof Element
+        ? fromEl
+        : fromEl && fromEl.parentElement
+          ? fromEl.parentElement
+          : panel;
+
+    while (el && panel.contains(el)) {
+      const style = window.getComputedStyle(el);
+      const oy = style.overflowY;
+      const canScroll =
+        (oy === 'auto' || oy === 'scroll' || oy === 'overlay') &&
+        el.scrollHeight > el.clientHeight + EDGE_EPS;
+      if (canScroll) list.push(el);
+      if (el === panel) break;
+      el = el.parentElement;
+    }
+
+    if (!list.includes(panel)) {
+      const state = getPanelScrollState(panel);
+      if (state.canInner) list.push(panel);
+    }
+
+    return list;
   }
 
-  function canPageDown() {
-    const { canInner, atBottom } = getPanelScrollState(panels[current]);
-    if (!canInner) return true;
-    return atBottom;
+  function canScrollChainDown(fromEl, panel) {
+    return collectVerticalScrollers(fromEl, panel).some(
+      (el) => el.scrollTop + el.clientHeight < el.scrollHeight - EDGE_EPS,
+    );
   }
 
-  function canScrollPanelUp(panel) {
-    const { canInner, atTop } = getPanelScrollState(panel);
-    return canInner && !atTop;
+  function canScrollChainUp(fromEl, panel) {
+    return collectVerticalScrollers(fromEl, panel).some((el) => el.scrollTop > EDGE_EPS);
   }
 
-  function canScrollPanelDown(panel) {
-    const { canInner, atBottom } = getPanelScrollState(panel);
-    return canInner && !atBottom;
+  function canPageUp(fromEl) {
+    const panel = panels[current];
+    return !canScrollChainUp(fromEl || panel, panel);
+  }
+
+  function canPageDown(fromEl) {
+    const panel = panels[current];
+    return !canScrollChainDown(fromEl || panel, panel);
+  }
+
+  function canScrollPanelUp(panel, fromEl) {
+    return canScrollChainUp(fromEl || panel, panel);
+  }
+
+  function canScrollPanelDown(panel, fromEl) {
+    return canScrollChainDown(fromEl || panel, panel);
   }
 
   function isInteractingWithText() {
@@ -288,15 +327,15 @@ export function initGsap({ reducedMotion = false, initialHash = '' } = {}) {
     }, 220);
   }
 
-  function tryPageFromOverscroll(direction) {
+  function tryPageFromOverscroll(direction, fromEl) {
     if (direction > 0) {
-      if (!canPageDown() || overscrollAccum < PAGE_OVERSCROLL_THRESHOLD) return false;
+      if (!canPageDown(fromEl) || overscrollAccum < PAGE_OVERSCROLL_THRESHOLD) return false;
       resetOverscroll();
       goTo(current + 1);
       return true;
     }
 
-    if (!canPageUp() || overscrollAccum > -PAGE_OVERSCROLL_THRESHOLD) return false;
+    if (!canPageUp(fromEl) || overscrollAccum > -PAGE_OVERSCROLL_THRESHOLD) return false;
     resetOverscroll();
     goTo(current - 1);
     return true;
@@ -362,42 +401,44 @@ export function initGsap({ reducedMotion = false, initialHash = '' } = {}) {
       const panel = panels[current];
       const delta = e.deltaY;
       if (Math.abs(delta) < 1) return;
+      const fromEl = e.target;
 
       if (delta > 0) {
-        if (canScrollPanelDown(panel)) {
+        if (canScrollPanelDown(panel, fromEl)) {
           resetOverscroll();
           return;
         }
-        if (!canPageDown()) {
+        if (!canPageDown(fromEl)) {
           resetOverscroll();
           return;
         }
         bumpOverscroll(delta);
-        if (tryPageFromOverscroll(1)) e.preventDefault();
+        if (tryPageFromOverscroll(1, fromEl)) e.preventDefault();
         return;
       }
 
-      if (canScrollPanelUp(panel)) {
+      if (canScrollPanelUp(panel, fromEl)) {
         resetOverscroll();
         return;
       }
-      if (!canPageUp()) {
+      if (!canPageUp(fromEl)) {
         resetOverscroll();
         return;
       }
       bumpOverscroll(delta);
-      if (tryPageFromOverscroll(-1)) e.preventDefault();
+      if (tryPageFromOverscroll(-1, fromEl)) e.preventDefault();
     },
     { passive: false },
   );
 
-  // 觸控裝置：內層先捲到底／頂，再多滑一段才翻頁
+  // 觸控裝置：內層（含作品卡）先捲到底／頂，再多滑一段才翻頁
   const pageEl = document.querySelector('.page') || track;
   let touchStartY = 0;
   let touchStartX = 0;
   let touchActive = false;
   let touchEdgeOverscroll = 0;
   let touchWasAtEdge = false;
+  let touchStartTarget = null;
 
   pageEl.addEventListener(
     'touchstart',
@@ -408,6 +449,7 @@ export function initGsap({ reducedMotion = false, initialHash = '' } = {}) {
       touchStartX = e.touches[0].clientX;
       touchEdgeOverscroll = 0;
       touchWasAtEdge = false;
+      touchStartTarget = e.target;
     },
     { passive: true },
   );
@@ -423,28 +465,29 @@ export function initGsap({ reducedMotion = false, initialHash = '' } = {}) {
       if (dx > 40) return;
 
       const panel = panels[current];
+      const fromEl = touchStartTarget || e.target;
       const scrollingDown = dy > 0;
       const scrollingUp = dy < 0;
 
-      if (scrollingDown && canScrollPanelDown(panel)) {
+      if (scrollingDown && canScrollPanelDown(panel, fromEl)) {
         touchEdgeOverscroll = 0;
         touchWasAtEdge = false;
         return;
       }
-      if (scrollingUp && canScrollPanelUp(panel)) {
+      if (scrollingUp && canScrollPanelUp(panel, fromEl)) {
         touchEdgeOverscroll = 0;
         touchWasAtEdge = false;
         return;
       }
 
-      if (scrollingDown && canPageDown()) {
+      if (scrollingDown && canPageDown(fromEl)) {
         touchWasAtEdge = true;
         touchEdgeOverscroll = Math.max(touchEdgeOverscroll, dy);
         if (touchEdgeOverscroll > 12) e.preventDefault();
         return;
       }
 
-      if (scrollingUp && canPageUp()) {
+      if (scrollingUp && canPageUp(fromEl)) {
         touchWasAtEdge = true;
         touchEdgeOverscroll = Math.min(touchEdgeOverscroll, dy);
         if (touchEdgeOverscroll < -12) e.preventDefault();
@@ -460,6 +503,7 @@ export function initGsap({ reducedMotion = false, initialHash = '' } = {}) {
         touchActive = false;
         touchEdgeOverscroll = 0;
         touchWasAtEdge = false;
+        touchStartTarget = null;
         return;
       }
       touchActive = false;
@@ -469,6 +513,9 @@ export function initGsap({ reducedMotion = false, initialHash = '' } = {}) {
 
       const dy = touchStartY - touch.clientY;
       const dx = Math.abs(touch.clientX - touchStartX);
+      const fromEl = touchStartTarget;
+      touchStartTarget = null;
+
       if (dx > Math.abs(dy)) {
         touchEdgeOverscroll = 0;
         touchWasAtEdge = false;
@@ -477,9 +524,9 @@ export function initGsap({ reducedMotion = false, initialHash = '' } = {}) {
 
       if (!touchWasAtEdge) return;
 
-      if (dy > 0 && canPageDown() && touchEdgeOverscroll >= TOUCH_OVERSCROLL_THRESHOLD) {
+      if (dy > 0 && canPageDown(fromEl) && touchEdgeOverscroll >= TOUCH_OVERSCROLL_THRESHOLD) {
         goTo(current + 1);
-      } else if (dy < 0 && canPageUp() && touchEdgeOverscroll <= -TOUCH_OVERSCROLL_THRESHOLD) {
+      } else if (dy < 0 && canPageUp(fromEl) && touchEdgeOverscroll <= -TOUCH_OVERSCROLL_THRESHOLD) {
         goTo(current - 1);
       }
 
@@ -506,13 +553,21 @@ export function initGsap({ reducedMotion = false, initialHash = '' } = {}) {
     if (document.body.classList.contains('is-lightbox-open')) return;
     if (e.target.closest('input, textarea, select, [contenteditable="true"]')) return;
 
+    const panel = panels[current];
+    const fromEl =
+      e.target instanceof Element && panel.contains(e.target)
+        ? e.target
+        : panel.querySelector('.project-item.is-active') || panel;
+
     if (['ArrowDown', 'PageDown'].includes(e.key) || (e.key === ' ' && !e.shiftKey)) {
-      if (!canPageDown() && e.key === ' ') return;
+      if (!canPageDown(fromEl) && e.key === ' ') return;
+      if (canScrollPanelDown(panel, fromEl)) return;
       e.preventDefault();
-      if (canPageDown()) goTo(current + 1);
+      if (canPageDown(fromEl)) goTo(current + 1);
     } else if (['ArrowUp', 'PageUp'].includes(e.key) || (e.key === ' ' && e.shiftKey)) {
+      if (canScrollPanelUp(panel, fromEl)) return;
       e.preventDefault();
-      if (canPageUp()) goTo(current - 1);
+      if (canPageUp(fromEl)) goTo(current - 1);
     } else if (e.key === 'Home') {
       e.preventDefault();
       goTo(0);
