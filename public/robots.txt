@@ -1,0 +1,19 @@
+# 只讓履歷頁被收錄。腳本與樣式留在 /assets/*.js、/assets/*.css，必須可抓取，
+# 否則搜尋引擎讀不到由 JavaScript 寫入的履歷內容。
+# 圖片、字型、影片、Lottie、備審文件與 source map 不提供給爬蟲。
+# 路徑同時涵蓋網域根目錄與 GitHub Pages 子路徑 /jiejie_resume2026/。
+
+User-agent: *
+Disallow: /assets/images/
+Disallow: /assets/lottie/
+Disallow: /assets/textures/
+Disallow: /fonts/
+Disallow: /jiejie_resume2026/assets/images/
+Disallow: /jiejie_resume2026/assets/lottie/
+Disallow: /jiejie_resume2026/assets/textures/
+Disallow: /jiejie_resume2026/fonts/
+Disallow: /*.docx$
+Disallow: /*.mp4$
+Disallow: /*.map$
+
+Sitemap: https://erjie94.github.io/jiejie_resume2026/sitemap.xml
